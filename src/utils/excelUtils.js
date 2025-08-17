@@ -104,8 +104,8 @@ export function processExcel(file, callback) {
                 .trim()
                 .toLowerCase()
               
-              // Only set bin value if Shelf column value contains "bin" (BIN, MAIL BIN, BIG BIN, etc.)
-              if (cleanShelfValue.includes('bin')) {
+              // Only set bin value if Shelf column value is exactly "BIN"
+              if (cleanShelfValue === 'bin') {
                 const tagValue = worksheet[i][tagIdx - 1] // tagIdx shifted due to inserted column
                 if (tagValue) {
                   const cleanTagValue = String(tagValue)
@@ -126,23 +126,46 @@ export function processExcel(file, callback) {
           }
         }
 
-        // Step 6: Sort by Shelf column for better organization
+        // Step 6: Sort by Bin Number, then by Shelf column for better organization
         if (worksheet.length > 1) {
           const header = worksheet[0]
           const dataRows = worksheet.slice(1)
+          const binIdx = header.findIndex(h => 
+            String(h).toLowerCase().trim().includes('bin no')
+          )
           const shelfIdx = header.findIndex(h => 
             String(h).toLowerCase().trim() === 'shelf'
           )
           
-          if (shelfIdx !== -1) {
-            const sortedDataRows = dataRows.sort((a, b) => {
-              const aVal = a[shelfIdx] ? String(a[shelfIdx]).toLowerCase() : ''
-              const bVal = b[shelfIdx] ? String(b[shelfIdx]).toLowerCase() : ''
-              return aVal.localeCompare(bVal)
-            })
+          const sortedDataRows = dataRows.sort((a, b) => {
+            // First sort by bin number (empty bins go to end)
+            const aBin = a[binIdx] || ''
+            const bBin = b[binIdx] || ''
             
-            worksheet = [header, ...sortedDataRows]
-          }
+            // If one has bin number and other doesn't
+            if (aBin && !bBin) return -1
+            if (!aBin && bBin) return 1
+            
+            // If both have bin numbers, sort numerically
+            if (aBin && bBin) {
+              const aBinNum = parseInt(aBin) || 0
+              const bBinNum = parseInt(bBin) || 0
+              if (aBinNum !== bBinNum) {
+                return aBinNum - bBinNum
+              }
+            }
+            
+            // Then sort by shelf type
+            if (shelfIdx !== -1) {
+              const aShelf = a[shelfIdx] ? String(a[shelfIdx]).toLowerCase() : ''
+              const bShelf = b[shelfIdx] ? String(b[shelfIdx]).toLowerCase() : ''
+              return aShelf.localeCompare(bShelf)
+            }
+            
+            return 0
+          })
+          
+          worksheet = [header, ...sortedDataRows]
         }
 
         // Ensure all rows have the same number of columns

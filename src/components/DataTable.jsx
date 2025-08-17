@@ -33,6 +33,12 @@ export default function DataTable({ data }) {
 
   return (
     <div className="space-y-4">
+      {/* Print Header - Only visible when printing */}
+      <div className="print-only print-header" style={{ display: 'none' }}>
+        <h1 className="print-title">Troy CSC Package Auditor</h1>
+        <p className="print-subtitle">Processed Package Data - {new Date().toLocaleDateString()}</p>
+      </div>
+
       {/* Table Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print mb-6">
         <div className="flex items-center space-x-3">
@@ -62,9 +68,9 @@ export default function DataTable({ data }) {
       </div>
 
       {/* Table */}
-      <div className="table-container">
+      <div className="table-container print-table-container">
         <div className="table-wrapper">
-          <table className="data-table">
+          <table className="data-table print-table">
             <thead className="table-header">
               <tr>
                 {headers.map((header, i) => (
@@ -76,7 +82,7 @@ export default function DataTable({ data }) {
                     <div className="flex items-center space-x-1">
                       <span>{header || `Column ${i + 1}`}</span>
                       {i === 0 && (
-                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 text-gray-400 no-print" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                         </svg>
                       )}
@@ -103,6 +109,11 @@ export default function DataTable({ data }) {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Print Footer - Only visible when printing */}
+      <div className="print-only print-footer" style={{ display: 'none' }}>
+        <p>Troy CSC Package Auditor - Total Records: {totalRows} - Generated: {new Date().toLocaleString()}</p>
       </div>
 
       {/* Pagination */}

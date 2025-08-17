@@ -126,7 +126,7 @@ export function processExcel(file, callback) {
           }
         }
 
-        // Step 6: Sort by Bin Number, then by Shelf column for better organization
+        // Step 6: Sort by Shelf, then Tag #, then Bin No. for better organization
         if (worksheet.length > 1) {
           const header = worksheet[0]
           const dataRows = worksheet.slice(1)
@@ -136,35 +136,57 @@ export function processExcel(file, callback) {
           const shelfIdx = header.findIndex(h => 
             String(h).toLowerCase().trim() === 'shelf'
           )
-          
-          const sortedDataRows = dataRows.sort((a, b) => {
-            // First sort by bin number (empty bins go to end)
-            const aBin = a[binIdx] || ''
-            const bBin = b[binIdx] || ''
-            
-            // If one has bin number and other doesn't
-            if (aBin && !bBin) return -1
-            if (!aBin && bBin) return 1
-            
-            // If both have bin numbers, sort numerically
-            if (aBin && bBin) {
-              const aBinNum = parseInt(aBin) || 0
-              const bBinNum = parseInt(bBin) || 0
-              if (aBinNum !== bBinNum) {
-                return aBinNum - bBinNum
-              }
-            }
-            
-            // Then sort by shelf type
-            if (shelfIdx !== -1) {
-              const aShelf = a[shelfIdx] ? String(a[shelfIdx]).toLowerCase() : ''
-              const bShelf = b[shelfIdx] ? String(b[shelfIdx]).toLowerCase() : ''
-              return aShelf.localeCompare(bShelf)
-            }
-            
-            return 0
+          const tagIdx = header.findIndex(h => {
+            const headerStr = String(h).toLowerCase().trim()
+            return headerStr.includes('tag') && headerStr.includes('#')
           })
           
+          // Group by shelf
+          const groupedByShelf = {}
+          for (const row of dataRows) {
+            const shelf = row[shelfIdx] ? String(row[shelfIdx])
+              .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '')
+              .toLowerCase().trim() : ''
+            if (!groupedByShelf[shelf]) groupedByShelf[shelf] = []
+            groupedByShelf[shelf].push(row)
+          }
+
+          // Sort shelf keys alphabetically
+          const sortedShelfKeys = Object.keys(groupedByShelf).sort((a, b) => a.localeCompare(b))
+
+          let sortedDataRows = []
+          for (const shelf of sortedShelfKeys) {
+            const rows = groupedByShelf[shelf]
+            // Split into rows with and without Bin No.
+            const withBin = rows.filter(r => String(r[binIdx] || '').trim() !== '')
+            const withoutBin = rows.filter(r => String(r[binIdx] || '').trim() === '')
+
+            // Sort withBin by Bin No. (numeric), then Tag #
+            withBin.sort((a, b) => {
+              const aBin = parseInt(String(a[binIdx] || '').trim()) || 0
+              const bBin = parseInt(String(b[binIdx] || '').trim()) || 0
+              if (aBin !== bBin) return aBin - bBin
+              // Tiebreaker: Tag #
+              const aTag = a[tagIdx] ? String(a[tagIdx])
+                .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '').trim() : ''
+              const bTag = b[tagIdx] ? String(b[tagIdx])
+                .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '').trim() : ''
+              return aTag.localeCompare(bTag, undefined, { numeric: true, sensitivity: 'base' })
+            })
+
+            // Sort withoutBin by Tag #
+            withoutBin.sort((a, b) => {
+              const aTag = a[tagIdx] ? String(a[tagIdx])
+                .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '').trim() : ''
+              const bTag = b[tagIdx] ? String(b[tagIdx])
+                .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '').trim() : ''
+              return aTag.localeCompare(bTag, undefined, { numeric: true, sensitivity: 'base' })
+            })
+
+            // Bin No. rows first, then non-Bin No. rows
+            sortedDataRows = sortedDataRows.concat(withBin, withoutBin)
+          }
+
           worksheet = [header, ...sortedDataRows]
         }
 

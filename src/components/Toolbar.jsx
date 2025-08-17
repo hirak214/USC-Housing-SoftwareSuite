@@ -63,6 +63,27 @@ export default function Toolbar({ tableData, fileName }) {
       </table>
     `
 
+    // --- SHELF COUNTS LOGIC ---
+    // Find the index of the Shelf column
+    const shelfIdx = headers.findIndex(h => String(h).toLowerCase().trim() === 'shelf')
+    // Count occurrences for each shelf type
+    const shelfCounts = {}
+    rows.forEach(row => {
+      const shelf = row[shelfIdx] ? String(row[shelfIdx])
+        .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '')
+        .trim() : ''
+      if (!shelfCounts[shelf]) shelfCounts[shelf] = 0
+      shelfCounts[shelf]++
+    })
+    const shelfStatsHTML = Object.entries(shelfCounts)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([shelf, count]) => `
+        <div class="stat-item">
+          <div class="stat-number">${count}</div>
+          <div class="stat-label">${shelf || 'Unspecified'}</div>
+        </div>
+      `).join('')
+
     // Create the complete HTML document
     const printHTML = `
       <!DOCTYPE html>
@@ -253,14 +274,7 @@ export default function Toolbar({ tableData, fileName }) {
         
         <div class="footer">
           <div class="stats">
-            <div class="stat-item">
-              <div class="stat-number">${rows.filter(row => row[1] && row[1] !== '').length}</div>
-              <div class="stat-label">Bin Items</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">${rows.filter(row => !row[1] || row[1] === '').length}</div>
-              <div class="stat-label">Other Items</div>
-            </div>
+            ${shelfStatsHTML}
             <div class="stat-item">
               <div class="stat-number">${rows.length}</div>
               <div class="stat-label">Total Items</div>

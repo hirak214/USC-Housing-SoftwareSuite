@@ -66,21 +66,26 @@ export default function Toolbar({ tableData, fileName }) {
     // --- SHELF COUNTS LOGIC ---
     // Find the index of the Shelf column
     const shelfIdx = headers.findIndex(h => String(h).toLowerCase().trim() === 'shelf')
-    // Count occurrences for each shelf type
+    // Count occurrences for each shelf type (case-insensitive)
     const shelfCounts = {}
+    const shelfLabels = {}
     rows.forEach(row => {
-      const shelf = row[shelfIdx] ? String(row[shelfIdx])
+      let shelf = row[shelfIdx] ? String(row[shelfIdx])
         .replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u180E]/g, '')
         .trim() : ''
-      if (!shelfCounts[shelf]) shelfCounts[shelf] = 0
-      shelfCounts[shelf]++
+      const shelfKey = shelf.toLowerCase()
+      if (!shelfCounts[shelfKey]) {
+        shelfCounts[shelfKey] = 0
+        shelfLabels[shelfKey] = shelf // preserve first encountered casing
+      }
+      shelfCounts[shelfKey]++
     })
     const shelfStatsHTML = Object.entries(shelfCounts)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([shelf, count]) => `
+      .map(([shelfKey, count]) => `
         <div class="stat-item">
           <div class="stat-number">${count}</div>
-          <div class="stat-label">${shelf || 'Unspecified'}</div>
+          <div class="stat-label">${shelfLabels[shelfKey] || 'Unspecified'}</div>
         </div>
       `).join('')
 

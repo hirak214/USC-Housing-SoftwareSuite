@@ -5,6 +5,15 @@ import FileUploader from './src/components/FileUploader'
 import DataTable from './src/components/DataTable'
 import Toolbar from './src/components/Toolbar'
 
+// Guest Card Inventory Components
+import GuestCardNavbar from './src/components/guestCard/Navbar'
+import RequestCard from './src/pages/guestCard/RequestCard'
+import PendingRequests from './src/pages/guestCard/PendingRequests'
+import AssignCard from './src/pages/guestCard/AssignCard'
+import ReturnCard from './src/pages/guestCard/ReturnCard'
+import Logs from './src/pages/guestCard/Logs'
+import PublicRequestCard from './src/pages/guestCard/PublicRequestCard'
+
 function AuditorApp() {
   const [tableData, setTableData] = React.useState([])
   const [fileName, setFileName] = React.useState('')
@@ -144,12 +153,31 @@ function AuditorApp() {
   )
 }
 
+function GuestCardInventoryApp() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <GuestCardNavbar />
+      <main className="container mx-auto px-4 py-8">
+        <Routes>
+          <Route path="" element={<RequestCard />} />
+          <Route path="pending" element={<PendingRequests />} />
+          <Route path="assign/:requestId" element={<AssignCard />} />
+          <Route path="return" element={<ReturnCard />} />
+          <Route path="logs" element={<Logs />} />
+        </Routes>
+      </main>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auditor" element={<AuditorApp />} />
+        <Route path="/guest-card-inventory/*" element={<GuestCardInventoryApp />} />
+        <Route path="/request-card" element={<PublicRequestCard />} />
       </Routes>
     </Router>
   )

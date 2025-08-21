@@ -1,12 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { logsApi } from '../../api/guestCardApi';
-import { DocumentTextIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useMemo } from 'react';
+import { logsApi, cardsApi } from '../../api/guestCardApi';
+import { DocumentTextIcon, CreditCardIcon, FunnelIcon, DocumentArrowDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import * as XLSX from 'xlsx';
 
 const Logs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all');
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    action: 'all', // all, assigned, unassigned, cards-out
+    search: '',
+    dateFrom: '',
+    dateTo: ''
+  });
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  
+  // UI states
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchLogs();
@@ -39,10 +54,125 @@ const Logs = () => {
     }
   };
 
-  const filteredLogs = logs.filter(log => {
-    if (filter === 'all') return true;
-    return log.action === filter;
-  });
+  // Get cards that are currently assigned (still out)
+  const getCardsStillOut = () => {
+    const cardStatus = {};
+    
+    // Process logs chronologically to track current status
+    const sortedLogs = [...logs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    sortedLogs.forEach(log => {
+      if (log.cardNumber) {
+        cardStatus[log.cardNumber] = {
+          action: log.action,
+          user: log.user,
+          timestamp: log.timestamp,
+          log: log
+        };
+      }
+    });
+    
+    // Return logs for cards that are currently assigned
+    return Object.values(cardStatus)
+      .filter(status => status.action === 'assigned')
+      .map(status => status.log);
+  };
+
+  // Advanced filtering logic
+  const filteredLogs = useMemo(() => {
+    let filtered = logs;
+
+    // Filter by action
+    if (filters.action === 'assigned') {
+      filtered = filtered.filter(log => log.action === 'assigned');
+    } else if (filters.action === 'unassigned') {
+      filtered = filtered.filter(log => log.action === 'unassigned');
+    } else if (filters.action === 'cards-out') {
+      filtered = getCardsStillOut();
+    }
+
+    // Filter by search term
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = filtered.filter(log => 
+        log.cardNumber?.toLowerCase().includes(searchTerm) ||
+        log.user?.toLowerCase().includes(searchTerm) ||
+        log.action?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Filter by date range
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      filtered = filtered.filter(log => new Date(log.timestamp) >= fromDate);
+    }
+    
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // Include the entire day
+      filtered = filtered.filter(log => new Date(log.timestamp) <= toDate);
+    }
+
+    // Sort by timestamp (newest first)
+    return filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  }, [logs, filters]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const paginatedLogs = useMemo(() => {
+    if (itemsPerPage === 'all') return filteredLogs;
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredLogs.slice(startIndex, endIndex);
+  }, [filteredLogs, currentPage, itemsPerPage]);
+
+  // Export to Excel
+  const exportToExcel = () => {
+    const exportData = filteredLogs.map(log => ({
+      'Date/Time': formatDate(log.timestamp),
+      'Action': log.action,
+      'Card Number': log.cardNumber,
+      'User/Guest': log.user,
+      'Details': log.details || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Card Activity Logs');
+    
+    // Generate filename with current date
+    const today = new Date().toISOString().split('T')[0];
+    const filename = `Troy_CSC_Card_Logs_${today}.xlsx`;
+    
+    XLSX.writeFile(workbook, filename);
+  };
+
+  // Filter handlers
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      action: 'all',
+      search: '',
+      dateFrom: '',
+      dateTo: ''
+    });
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
+  };
 
   if (loading) {
     return (
@@ -53,23 +183,33 @@ const Logs = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="card">
-        <div className="flex items-center justify-between mb-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3">
             <DocumentTextIcon className="h-8 w-8 text-troy-red" />
-            <h2 className="text-2xl font-bold text-gray-900">Activity Logs</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Card Activity Logs</h2>
           </div>
-          <div className="flex items-center space-x-4">
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="input-field w-auto"
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="btn-outline text-sm flex items-center space-x-2"
             >
-              <option value="all">All Actions</option>
-              <option value="assigned">Assigned Only</option>
-              <option value="unassigned">Returned Only</option>
-            </select>
+              <FunnelIcon className="h-4 w-4" />
+              <span>Filters</span>
+            </button>
+            
+            <button
+              onClick={exportToExcel}
+              disabled={filteredLogs.length === 0}
+              className="btn-secondary text-sm flex items-center space-x-2"
+            >
+              <DocumentArrowDownIcon className="h-4 w-4" />
+              <span>Export Excel</span>
+            </button>
+            
             <button
               onClick={fetchLogs}
               className="btn-secondary text-sm"
@@ -79,91 +219,259 @@ const Logs = () => {
           </div>
         </div>
 
-        {error && (
-          <div className="alert-error">
-            {error}
-          </div>
-        )}
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Action Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Filter by Action
+                </label>
+                <select
+                  value={filters.action}
+                  onChange={(e) => handleFilterChange('action', e.target.value)}
+                  className="input-field w-full"
+                >
+                  <option value="all">All Actions</option>
+                  <option value="assigned">Assigned Only</option>
+                  <option value="unassigned">Returned Only</option>
+                  <option value="cards-out">Cards Still Out</option>
+                </select>
+              </div>
 
-        {filteredLogs.length === 0 ? (
-          <div className="text-center py-12">
-            <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No logs found</h3>
-            <p className="text-gray-600">
-              {filter === 'all' 
-                ? 'No activity has been recorded yet.'
-                : `No ${filter} activities found.`
-              }
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-4 text-sm text-gray-600">
-              Showing {filteredLogs.length} of {logs.length} total entries
+              {/* Search Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Search
+                </label>
+                <div className="relative">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    className="input-field pl-10 w-full"
+                    placeholder="Card number, user, action..."
+                  />
+                </div>
+              </div>
+
+              {/* Date From */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                  className="input-field w-full"
+                />
+              </div>
+
+              {/* Date To */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                  className="input-field w-full"
+                />
+              </div>
             </div>
             
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Timestamp
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Card Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredLogs.map((log) => (
-                    <tr key={log._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(log.timestamp)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <CreditCardIcon className="h-5 w-5 text-gray-400 mr-3" />
-                          <span className="text-sm font-mono text-gray-900">
-                            {log.cardNumber}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {log.user}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={clearFilters}
+                className="btn-outline text-sm"
+              >
+                Clear Filters
+              </button>
             </div>
-          </>
+          </div>
         )}
 
-        <div className="mt-6 grid md:grid-cols-2 gap-4">
+        {/* Statistics Cards */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h3 className="font-medium text-blue-900 mb-2">Total Activities</h3>
+            <p className="text-2xl font-bold text-blue-600">{logs.length}</p>
+          </div>
           <div className="p-4 bg-green-50 rounded-lg">
-            <h3 className="font-medium text-green-900 mb-2">Assigned Cards</h3>
+            <h3 className="font-medium text-green-900 mb-2">Cards Assigned</h3>
             <p className="text-2xl font-bold text-green-600">
               {logs.filter(log => log.action === 'assigned').length}
             </p>
           </div>
           <div className="p-4 bg-red-50 rounded-lg">
-            <h3 className="font-medium text-red-900 mb-2">Returned Cards</h3>
+            <h3 className="font-medium text-red-900 mb-2">Cards Returned</h3>
             <p className="text-2xl font-bold text-red-600">
               {logs.filter(log => log.action === 'unassigned').length}
             </p>
           </div>
+          <div className="p-4 bg-yellow-50 rounded-lg">
+            <h3 className="font-medium text-yellow-900 mb-2">Cards Still Out</h3>
+            <p className="text-2xl font-bold text-yellow-600">
+              {getCardsStillOut().length}
+            </p>
+          </div>
         </div>
+
+        {error && (
+          <div className="alert-error mb-6">
+            {error}
+          </div>
+        )}
+
+        {/* Results Info and Pagination Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
+          <div className="text-sm text-gray-600">
+            Showing {paginatedLogs.length} of {filteredLogs.length} entries
+            {filteredLogs.length !== logs.length && ` (filtered from ${logs.length} total)`}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-700">Show:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => handleItemsPerPageChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+              className="input-field w-auto text-sm"
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Table */}
+        {filteredLogs.length === 0 ? (
+          <div className="text-center py-12">
+            <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No logs found</h3>
+            <p className="text-gray-600">
+              {filters.action === 'all' && !filters.search && !filters.dateFrom && !filters.dateTo
+                ? 'No activity has been recorded yet.'
+                : 'No activities match your current filters.'
+              }
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date & Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Card Number
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Guest/User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Details
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedLogs.map((log) => (
+                  <tr key={log._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div>
+                        <div className="font-medium">{new Date(log.timestamp).toLocaleDateString()}</div>
+                        <div className="text-gray-500">{new Date(log.timestamp).toLocaleTimeString()}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
+                        {log.action === 'assigned' ? 'Assigned' : log.action === 'unassigned' ? 'Returned' : log.action}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <CreditCardIcon className="h-5 w-5 text-gray-400 mr-3" />
+                        <span className="text-sm font-mono text-gray-900 font-medium">
+                          {log.cardNumber}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {log.user}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                      {log.details || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {itemsPerPage !== 'all' && totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Page {currentPage} of {totalPages}
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              
+              {/* Page numbers */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md ${
+                      currentPage === pageNum
+                        ? 'bg-troy-red text-white'
+                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

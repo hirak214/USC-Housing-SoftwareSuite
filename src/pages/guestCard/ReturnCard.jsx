@@ -35,8 +35,16 @@ const ReturnCard = () => {
   const handleCardNumberChange = (e) => {
     const rawValue = e.target.value;
     
-    // If it looks like swipe data (contains semicolons, equals, etc.), extract the card number
-    if (rawValue.includes(';') || rawValue.includes('=') || rawValue.includes('?')) {
+    // Check if this looks like magnetic stripe data
+    // Your format: 11109741241031110974124103 (all numbers, longer than typical card number)
+    const isLikelySwipeData = 
+      rawValue.includes(';') || 
+      rawValue.includes('=') || 
+      rawValue.includes('?') ||
+      (rawValue.replace(/[^0-9]/g, '').length > 12); // Longer than typical card numbers
+    
+    if (isLikelySwipeData) {
+      // Use the improved extraction for magnetic stripe data
       const extracted = extractCardNumber(rawValue);
       setCardNumber(extracted);
     } else {

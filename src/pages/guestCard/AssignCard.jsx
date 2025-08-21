@@ -55,7 +55,13 @@ const AssignCard = () => {
     setMessage('');
 
     try {
-      await cardsApi.assign(cardNumber.trim(), request.name, request._id);
+      await cardsApi.assign(
+        cardNumber.trim(), 
+        request.name, 
+        request._id,
+        request.email,
+        request.phone
+      );
       setMessage(`Card ${cardNumber} successfully assigned to ${request.name}`);
       // Redirect to pending requests after 2 seconds
       setTimeout(() => {
@@ -118,6 +124,12 @@ const AssignCard = () => {
           <div className="bg-blue-50 p-4 rounded-lg mb-6">
             <h3 className="font-medium text-blue-900 mb-2">Request Details</h3>
             <p className="text-blue-800"><strong>Name:</strong> {request.name}</p>
+            {request.email && (
+              <p className="text-blue-800"><strong>Email:</strong> {request.email}</p>
+            )}
+            {request.phone && (
+              <p className="text-blue-800"><strong>Phone:</strong> {request.phone}</p>
+            )}
             <p className="text-blue-800"><strong>Status:</strong> {request.status}</p>
             <p className="text-blue-800">
               <strong>Requested:</strong> {new Date(request.createdAt).toLocaleString()}

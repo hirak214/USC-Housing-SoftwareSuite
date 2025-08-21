@@ -25,8 +25,8 @@ export const requestsApi = {
 };
 
 export const cardsApi = {
-  assign: (cardNumber, userName, requestId) =>
-    api.post('/api/cards?action=assign', { cardNumber, userName, requestId }),
+  assign: (cardNumber, userName, requestId, userEmail = null, userPhone = null) =>
+    api.post('/api/cards?action=assign', { cardNumber, userName, requestId, userEmail, userPhone }),
   unassign: (cardNumber) =>
     api.post('/api/cards?action=unassign', { cardNumber }),
   getStatus: (cardNumber) =>

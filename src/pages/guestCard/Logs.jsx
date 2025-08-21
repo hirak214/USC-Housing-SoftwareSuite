@@ -98,6 +98,9 @@ const Logs = () => {
       filtered = filtered.filter(log => 
         log.cardNumber?.toLowerCase().includes(searchTerm) ||
         log.user?.toLowerCase().includes(searchTerm) ||
+        log.userIdentifier?.toLowerCase().includes(searchTerm) ||
+        log.userEmail?.toLowerCase().includes(searchTerm) ||
+        log.userPhone?.toLowerCase().includes(searchTerm) ||
         log.action?.toLowerCase().includes(searchTerm)
       );
     }
@@ -175,24 +178,50 @@ const Logs = () => {
     setCurrentPage(1);
   };
 
-  // Fetch user details by name (and optionally email/phone)
-  const openUserModal = async (userName) => {
+  // Fetch user details by log entry (contains user info)
+  const openUserModal = async (logEntry) => {
     setUserModal({ open: true, user: null, requests: [], loading: true, error: '' });
     try {
-      // Get all requests (including completed ones) and filter by name on the client side
+      const userName = logEntry.user;
+      const userEmail = logEntry.userEmail;
+      const userPhone = logEntry.userPhone;
+      
+      // Get all requests (including completed ones) and filter by user details
       const response = await requestsApi.getAll();
       let allRequests = response.data || [];
       
-      // Filter requests by exact name match
-      const userRequests = allRequests.filter(req => req.name === userName);
+      // Filter requests by name and optionally email/phone for exact match
+      const userRequests = allRequests.filter(req => {
+        const nameMatches = req.name === userName;
+        if (userEmail) {
+          return nameMatches && req.email === userEmail;
+        }
+        if (userPhone) {
+          return nameMatches && req.phone === userPhone;
+        }
+        return nameMatches;
+      });
       
       // Get the most recent request with the most complete information
       const primaryUser = userRequests.length > 0 
         ? userRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
-        : { name: userName };
+        : { 
+            name: userName, 
+            email: userEmail, 
+            phone: userPhone 
+          };
       
-      // Also get user activity from logs
-      const userLogs = logs.filter(log => log.user === userName);
+      // Get user activity from logs - match by user identifier for better accuracy
+      const userLogs = logs.filter(log => {
+        if (userEmail && log.userEmail) {
+          return log.user === userName && log.userEmail === userEmail;
+        }
+        if (userPhone && log.userPhone) {
+          return log.user === userName && log.userPhone === userPhone;
+        }
+        return log.user === userName;
+      });
+      
       const cardCount = userLogs.filter(log => log.action === 'assigned').length;
       const returnCount = userLogs.filter(log => log.action === 'unassigned').length;
       
@@ -202,7 +231,8 @@ const Logs = () => {
           ...primaryUser, 
           cardAssignments: cardCount,
           cardReturns: returnCount,
-          totalActivity: userLogs.length
+          totalActivity: userLogs.length,
+          uniqueIdentifier: logEntry.userIdentifier || userName
         }, 
         requests: userRequests, 
         loading: false, 
@@ -212,7 +242,12 @@ const Logs = () => {
       console.error('Error fetching user details:', err);
       setUserModal({ 
         open: true, 
-        user: { name: userName }, 
+        user: { 
+          name: logEntry.user,
+          email: logEntry.userEmail,
+          phone: logEntry.userPhone,
+          uniqueIdentifier: logEntry.userIdentifier || logEntry.user
+        }, 
         requests: [], 
         loading: false, 
         error: 'Failed to fetch user details' 
@@ -452,9 +487,20 @@ const Logs = () => {
                           </span>
                         </div>
                       </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-troy-red font-semibold cursor-pointer underline hover:text-troy-gold" onClick={() => openUserModal(log.user)}>
-                        {log.user}
-                      </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button 
+                        onClick={() => openUserModal(log)} 
+                        className="text-troy-red hover:text-troy-gold hover:underline font-medium transition-colors duration-200"
+                      >
+                        {log.userIdentifier || log.user}
+                      </button>
+                      {log.userIdentifier && log.userIdentifier !== log.user && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {log.userEmail && `📧 ${log.userEmail}`}
+                          {log.userPhone && ` 📞 ${log.userPhone}`}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
                       {log.details || '-'}
                     </td>
@@ -532,7 +578,7 @@ const Logs = () => {
             ) : (
                       <>
           <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <div className="font-semibold text-lg text-gray-900 mb-2">{userModal.user?.name}</div>
+            <div className="font-semibold text-lg text-gray-900 mb-2">{userModal.user?.uniqueIdentifier || userModal.user?.name}</div>
             {userModal.user?.email && (
               <div className="text-gray-700 text-sm mb-1 flex items-center">
                 <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

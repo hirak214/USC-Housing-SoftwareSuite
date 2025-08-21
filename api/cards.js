@@ -12,7 +12,7 @@ export default async (req, res) => {
     if (req.query.action === 'assign') {
       // Assign card
       try {
-        const { cardNumber, userName, requestId } = req.body;
+        const { cardNumber, userName, requestId, userEmail, userPhone } = req.body;
         if (!cardNumber || !userName) {
           return res.status(400).json({ error: 'Card number and user name are required' });
         }
@@ -52,11 +52,20 @@ export default async (req, res) => {
             { $set: { status: 'completed' } }
           );
         }
+        // Create unique user identifier
+        const userIdentifier = userEmail ? `${userName} (${userEmail})` : 
+                              userPhone ? `${userName} (${userPhone})` : 
+                              userName;
+        
         // Log
         await logs.insertOne({
           action: 'assigned',
           cardNumber,
           user: userName,
+          userIdentifier,
+          userEmail: userEmail || null,
+          userPhone: userPhone || null,
+          requestId: requestId || null,
           timestamp: new Date(),
         });
         return res.status(200).json({ card, message: 'Card assigned successfully' });
@@ -75,6 +84,13 @@ export default async (req, res) => {
           return res.status(400).json({ error: 'Card is not currently assigned' });
         }
         const userName = card.assignedTo;
+        
+        // Find the most recent assignment log to get user details
+        const assignmentLog = await logs.findOne(
+          { cardNumber, action: 'assigned' },
+          { sort: { timestamp: -1 } }
+        );
+        
         await cards.updateOne(
           { cardNumber },
           {
@@ -85,11 +101,16 @@ export default async (req, res) => {
             },
           }
         );
-        // Log
+        
+        // Log with user details from assignment
         await logs.insertOne({
           action: 'unassigned',
           cardNumber,
           user: userName,
+          userIdentifier: assignmentLog?.userIdentifier || userName,
+          userEmail: assignmentLog?.userEmail || null,
+          userPhone: assignmentLog?.userPhone || null,
+          requestId: assignmentLog?.requestId || null,
           timestamp: new Date(),
         });
         return res.status(200).json({ message: 'Card returned successfully' });

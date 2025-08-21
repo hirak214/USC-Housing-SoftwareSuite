@@ -85,7 +85,7 @@ const ReturnCard = () => {
               id="cardNumber"
               value={cardNumber}
               onChange={handleCardNumberChange}
-              className="input-field font-mono"
+              className="input-field font-mono w-full"
               placeholder="Swipe card or enter card number"
               required
               disabled={loading}

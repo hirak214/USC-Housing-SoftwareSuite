@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { logsApi, cardsApi } from '../../api/guestCardApi';
+import { logsApi, cardsApi, requestsApi } from '../../api/guestCardApi';
 import { DocumentTextIcon, CreditCardIcon, FunnelIcon, DocumentArrowDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import * as XLSX from 'xlsx';
 
@@ -22,6 +22,7 @@ const Logs = () => {
   
   // UI states
   const [showFilters, setShowFilters] = useState(false);
+  const [userModal, setUserModal] = useState({ open: false, user: null, requests: [], loading: false, error: '' });
 
   useEffect(() => {
     fetchLogs();
@@ -173,6 +174,25 @@ const Logs = () => {
     setItemsPerPage(value);
     setCurrentPage(1);
   };
+
+  // Fetch user details by name (and optionally email/phone)
+  const openUserModal = async (userName) => {
+    setUserModal({ open: true, user: null, requests: [], loading: true, error: '' });
+    try {
+      // Try to find requests for this user (by name)
+      const allRequests = await requestsApi.getByName ? await requestsApi.getByName(userName) : await requestsApi.getAll();
+      let requests = [];
+      if (Array.isArray(allRequests.data)) {
+        requests = allRequests.data.filter(r => r.name === userName);
+      } else if (allRequests.data && allRequests.data.name === userName) {
+        requests = [allRequests.data];
+      }
+      setUserModal({ open: true, user: requests[0] || { name: userName }, requests, loading: false, error: '' });
+    } catch (err) {
+      setUserModal({ open: true, user: { name: userName }, requests: [], loading: false, error: 'Failed to fetch user details' });
+    }
+  };
+  const closeUserModal = () => setUserModal({ open: false, user: null, requests: [], loading: false, error: '' });
 
   if (loading) {
     return (
@@ -405,7 +425,7 @@ const Logs = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-troy-red font-semibold cursor-pointer underline hover:text-troy-gold" onClick={() => openUserModal(log.user)}>
                       {log.user}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
@@ -473,6 +493,42 @@ const Logs = () => {
           </div>
         )}
       </div>
+      {userModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 relative animate-fadeIn">
+            <button onClick={closeUserModal} className="absolute top-2 right-2 text-gray-400 hover:text-troy-red text-2xl font-bold">&times;</button>
+            <h3 className="text-xl font-bold mb-2 text-troy-red">User Details</h3>
+            {userModal.loading ? (
+              <div className="py-8 text-center text-gray-500">Loading...</div>
+            ) : userModal.error ? (
+              <div className="alert-error">{userModal.error}</div>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <div className="font-semibold text-lg text-gray-900">{userModal.user?.name}</div>
+                  {userModal.user?.email && <div className="text-gray-700 text-sm">Email: {userModal.user.email}</div>}
+                  {userModal.user?.phone && <div className="text-gray-700 text-sm">Phone: {userModal.user.phone}</div>}
+                  {userModal.user?.firstName && userModal.user?.lastName && (
+                    <div className="text-gray-700 text-sm">Full Name: {userModal.user.firstName} {userModal.user.lastName}</div>
+                  )}
+                  {userModal.user?.createdAt && <div className="text-gray-500 text-xs">Requested: {formatDate(userModal.user.createdAt)}</div>}
+                </div>
+                <div className="mb-2 font-semibold text-gray-800">All Requests by this User:</div>
+                <ul className="max-h-40 overflow-y-auto text-sm space-y-1">
+                  {userModal.requests.length === 0 ? (
+                    <li className="text-gray-400 italic">No requests found.</li>
+                  ) : userModal.requests.map((req) => (
+                    <li key={req._id} className="border-b last:border-b-0 py-1">
+                      <span className="font-medium">{req.status}</span> &mdash; <span className="text-gray-700">{formatDate(req.createdAt)}</span>
+                      {req.email && <span className="ml-2 text-gray-500">({req.email})</span>}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

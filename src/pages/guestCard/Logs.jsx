@@ -179,17 +179,44 @@ const Logs = () => {
   const openUserModal = async (userName) => {
     setUserModal({ open: true, user: null, requests: [], loading: true, error: '' });
     try {
-      // Try to find requests for this user (by name)
-      const allRequests = await requestsApi.getByName ? await requestsApi.getByName(userName) : await requestsApi.getAll();
-      let requests = [];
-      if (Array.isArray(allRequests.data)) {
-        requests = allRequests.data.filter(r => r.name === userName);
-      } else if (allRequests.data && allRequests.data.name === userName) {
-        requests = [allRequests.data];
-      }
-      setUserModal({ open: true, user: requests[0] || { name: userName }, requests, loading: false, error: '' });
+      // Get all requests (including completed ones) and filter by name on the client side
+      const response = await requestsApi.getAll();
+      let allRequests = response.data || [];
+      
+      // Filter requests by exact name match
+      const userRequests = allRequests.filter(req => req.name === userName);
+      
+      // Get the most recent request with the most complete information
+      const primaryUser = userRequests.length > 0 
+        ? userRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+        : { name: userName };
+      
+      // Also get user activity from logs
+      const userLogs = logs.filter(log => log.user === userName);
+      const cardCount = userLogs.filter(log => log.action === 'assigned').length;
+      const returnCount = userLogs.filter(log => log.action === 'unassigned').length;
+      
+      setUserModal({ 
+        open: true, 
+        user: { 
+          ...primaryUser, 
+          cardAssignments: cardCount,
+          cardReturns: returnCount,
+          totalActivity: userLogs.length
+        }, 
+        requests: userRequests, 
+        loading: false, 
+        error: '' 
+      });
     } catch (err) {
-      setUserModal({ open: true, user: { name: userName }, requests: [], loading: false, error: 'Failed to fetch user details' });
+      console.error('Error fetching user details:', err);
+      setUserModal({ 
+        open: true, 
+        user: { name: userName }, 
+        requests: [], 
+        loading: false, 
+        error: 'Failed to fetch user details' 
+      });
     }
   };
   const closeUserModal = () => setUserModal({ open: false, user: null, requests: [], loading: false, error: '' });
@@ -382,60 +409,60 @@ const Logs = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date & Time
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Action
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Card Number
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Card Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Guest/User
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Details
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedLogs.map((log) => (
-                  <tr key={log._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <tr key={log._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
                         <div className="font-medium">{new Date(log.timestamp).toLocaleDateString()}</div>
                         <div className="text-gray-500">{new Date(log.timestamp).toLocaleTimeString()}</div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
                         {log.action === 'assigned' ? 'Assigned' : log.action === 'unassigned' ? 'Returned' : log.action}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <CreditCardIcon className="h-5 w-5 text-gray-400 mr-3" />
-                        <span className="text-sm font-mono text-gray-900 font-medium">
-                          {log.cardNumber}
                         </span>
-                      </div>
-                    </td>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <CreditCardIcon className="h-5 w-5 text-gray-400 mr-3" />
+                        <span className="text-sm font-mono text-gray-900 font-medium">
+                            {log.cardNumber}
+                          </span>
+                        </div>
+                      </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-troy-red font-semibold cursor-pointer underline hover:text-troy-gold" onClick={() => openUserModal(log.user)}>
-                      {log.user}
-                    </td>
+                        {log.user}
+                      </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
                       {log.details || '-'}
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
         )}
 
         {/* Pagination */}
@@ -503,28 +530,69 @@ const Logs = () => {
             ) : userModal.error ? (
               <div className="alert-error">{userModal.error}</div>
             ) : (
-              <>
-                <div className="mb-4">
-                  <div className="font-semibold text-lg text-gray-900">{userModal.user?.name}</div>
-                  {userModal.user?.email && <div className="text-gray-700 text-sm">Email: {userModal.user.email}</div>}
-                  {userModal.user?.phone && <div className="text-gray-700 text-sm">Phone: {userModal.user.phone}</div>}
-                  {userModal.user?.firstName && userModal.user?.lastName && (
-                    <div className="text-gray-700 text-sm">Full Name: {userModal.user.firstName} {userModal.user.lastName}</div>
-                  )}
-                  {userModal.user?.createdAt && <div className="text-gray-500 text-xs">Requested: {formatDate(userModal.user.createdAt)}</div>}
+                      <>
+          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+            <div className="font-semibold text-lg text-gray-900 mb-2">{userModal.user?.name}</div>
+            {userModal.user?.email && (
+              <div className="text-gray-700 text-sm mb-1 flex items-center">
+                <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.94a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {userModal.user.email}
+              </div>
+            )}
+            {userModal.user?.phone && (
+              <div className="text-gray-700 text-sm mb-1 flex items-center">
+                <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                {userModal.user.phone}
+              </div>
+            )}
+            {userModal.user?.createdAt && (
+              <div className="text-gray-500 text-xs">First Request: {formatDate(userModal.user.createdAt)}</div>
+            )}
+          </div>
+
+          {/* Activity Summary */}
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            <div className="text-center p-2 bg-blue-50 rounded">
+              <div className="text-lg font-bold text-blue-600">{userModal.user?.totalActivity || 0}</div>
+              <div className="text-xs text-blue-800">Total Activity</div>
+            </div>
+            <div className="text-center p-2 bg-green-50 rounded">
+              <div className="text-lg font-bold text-green-600">{userModal.user?.cardAssignments || 0}</div>
+              <div className="text-xs text-green-800">Cards Assigned</div>
+            </div>
+            <div className="text-center p-2 bg-red-50 rounded">
+              <div className="text-lg font-bold text-red-600">{userModal.user?.cardReturns || 0}</div>
+              <div className="text-xs text-red-800">Cards Returned</div>
+            </div>
+          </div>
+
+          <div className="mb-2 font-semibold text-gray-800">All Requests:</div>
+          <div className="max-h-32 overflow-y-auto text-sm space-y-2">
+            {userModal.requests.length === 0 ? (
+              <div className="text-gray-400 italic text-center py-4">No requests found for this user.</div>
+            ) : userModal.requests.map((req) => (
+              <div key={req._id} className="border border-gray-200 rounded p-2 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    req.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    req.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {req.status}
+                  </span>
+                  <span className="text-gray-500 text-xs">{formatDate(req.createdAt)}</span>
                 </div>
-                <div className="mb-2 font-semibold text-gray-800">All Requests by this User:</div>
-                <ul className="max-h-40 overflow-y-auto text-sm space-y-1">
-                  {userModal.requests.length === 0 ? (
-                    <li className="text-gray-400 italic">No requests found.</li>
-                  ) : userModal.requests.map((req) => (
-                    <li key={req._id} className="border-b last:border-b-0 py-1">
-                      <span className="font-medium">{req.status}</span> &mdash; <span className="text-gray-700">{formatDate(req.createdAt)}</span>
-                      {req.email && <span className="ml-2 text-gray-500">({req.email})</span>}
-                    </li>
-                  ))}
-                </ul>
-              </>
+                {req.email && <div className="text-gray-600 text-xs mt-1">📧 {req.email}</div>}
+                {req.phone && <div className="text-gray-600 text-xs">📞 {req.phone}</div>}
+              </div>
+            ))}
+          </div>
+        </>
             )}
           </div>
         </div>

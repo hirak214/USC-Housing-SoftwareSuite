@@ -11,6 +11,7 @@ const api = axios.create({
 
 export const requestsApi = {
   getPending: () => api.get('/api/requests?pending=true'),
+  getAll: () => api.get('/api/requests'),
   create: (requestData) => {
     // Handle both old format (string) and new format (object)
     if (typeof requestData === 'string') {

@@ -138,7 +138,7 @@ function AuditorApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="border-t border-gray-700 mt-8 pt-8 text-center">
             <p className="text-gray-400 text-sm">
-              &copy; 2024 Troy CSC Auto. Built with ❤️ for efficient data processing.
+              &copy; 5 Troy CSC Auto. Built with ❤️ for efficient data processing.
             </p>
             <p className="text-gray-500 text-xs mt-2">
               Secure client-side processing • No data leaves your device

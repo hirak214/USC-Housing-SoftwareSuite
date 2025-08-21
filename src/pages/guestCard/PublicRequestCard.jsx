@@ -152,7 +152,7 @@ const PublicRequestCard = () => {
 
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
-            © 2024 Troy CSC • Secure Guest Access System
+            © 2025 Troy CSC • Secure Guest Access System
           </p>
         </div>
       </div>

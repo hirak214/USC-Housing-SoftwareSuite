@@ -24,6 +24,19 @@ const PendingRequests = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this request?')) return;
+    try {
+      setLoading(true);
+      await requestsApi.delete(id);
+      fetchPendingRequests();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
@@ -105,10 +118,16 @@ const PendingRequests = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Link
                         to={`/guest-card-inventory/assign/${request._id}`}
-                        className="btn-primary text-sm"
+                        className="btn-primary text-sm mr-2"
                       >
                         Assign Card
                       </Link>
+                      <button
+                        onClick={() => handleDelete(request._id)}
+                        className="btn-danger text-sm"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

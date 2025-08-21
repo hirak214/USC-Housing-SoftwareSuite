@@ -72,8 +72,22 @@ export default async (req, res) => {
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
+  } else if (req.method === 'DELETE') {
+    // DELETE /api/requests?id=...
+    try {
+      if (!req.query || !req.query.id) {
+        return res.status(400).json({ error: 'Request id is required' });
+      }
+      const result = await collection.deleteOne({ _id: new ObjectId(req.query.id) });
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: 'Request not found' });
+      }
+      return res.status(200).json({ message: 'Request deleted' });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
   } else {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
   } catch (error) {

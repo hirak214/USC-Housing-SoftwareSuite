@@ -14,6 +14,7 @@ export const requestsApi = {
   create: (name) => api.post('/api/requests', { name }),
   getById: (id) => api.get(`/api/requests?id=${id}`),
   updateStatus: (id, status) => api.put(`/api/requests?id=${id}`, { status }),
+  delete: (id) => api.delete(`/api/requests?id=${id}`),
 };
 
 export const cardsApi = {

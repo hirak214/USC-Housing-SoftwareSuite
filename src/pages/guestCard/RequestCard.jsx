@@ -3,16 +3,46 @@ import { requestsApi } from '../../api/guestCardApi';
 import { UserIcon } from '@heroicons/react/24/outline';
 
 const RequestCard = () => {
-  const [name, setName] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!name.trim()) {
-      setError('Please enter your full name');
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError('Please enter your first and last name');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Please enter your phone number');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -21,9 +51,21 @@ const RequestCard = () => {
     setMessage('');
 
     try {
-      await requestsApi.create(name.trim());
+      const requestData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim()
+      };
+      
+      await requestsApi.create(requestData);
       setMessage('Request submitted successfully! Please wait for admin to assign a card.');
-      setName('');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: ''
+      });
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit request');
     } finally {
@@ -37,7 +79,7 @@ const RequestCard = () => {
         <div className="text-center mb-6">
           <UserIcon className="h-12 w-12 text-troy-red mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900">Request a Guest Card</h2>
-          <p className="text-gray-600 mt-2">Enter your full name to request a guest card</p>
+          <p className="text-gray-600 mt-2">Please fill out your information to request a guest card</p>
         </div>
 
         {error && (
@@ -53,17 +95,70 @@ const RequestCard = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                First Name *
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="First name"
+                required
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Last name"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name *
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address *
             </label>
             <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               className="input-field"
-              placeholder="Enter your full name"
+              placeholder="your.email@example.com"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number *
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="input-field"
+              placeholder="(123) 456-7890"
               required
               disabled={loading}
             />

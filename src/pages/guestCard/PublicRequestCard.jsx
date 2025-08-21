@@ -3,16 +3,46 @@ import { requestsApi } from '../../api/guestCardApi';
 import { UserIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const PublicRequestCard = () => {
-  const [name, setName] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!name.trim()) {
-      setError('Please enter your full name');
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError('Please enter your first and last name');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Please enter your phone number');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -20,9 +50,21 @@ const PublicRequestCard = () => {
     setError('');
 
     try {
-      await requestsApi.create(name.trim());
+      const requestData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim()
+      };
+      
+      await requestsApi.create(requestData);
       setSubmitted(true);
-      setName('');
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: ''
+      });
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit request. Please try again.');
     } finally {
@@ -33,6 +75,12 @@ const PublicRequestCard = () => {
   const handleNewRequest = () => {
     setSubmitted(false);
     setError('');
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: ''
+    });
   };
 
   if (submitted) {
@@ -102,28 +150,81 @@ const PublicRequestCard = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-3">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-troy-red focus:border-transparent text-lg"
+                  placeholder="First name"
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-3">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-troy-red focus:border-transparent text-lg"
+                  placeholder="Last name"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-3">
-                Full Name *
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-3">
+                Email Address *
               </label>
               <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-troy-red focus:border-transparent text-lg"
-                placeholder="Enter your full name"
+                placeholder="your.email@example.com"
                 required
                 disabled={loading}
-                autoFocus
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-3">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-troy-red focus:border-transparent text-lg"
+                placeholder="(123) 456-7890"
+                required
+                disabled={loading}
               />
             </div>
 
             <button
               type="submit"
-              disabled={loading || !name.trim()}
+              disabled={loading || !formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.phone.trim()}
               className={`w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
-                loading || !name.trim()
+                loading || !formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.phone.trim()
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-troy-red text-white hover:bg-red-700 hover:shadow-lg transform hover:-translate-y-0.5'
               }`}

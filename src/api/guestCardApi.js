@@ -11,7 +11,13 @@ const api = axios.create({
 
 export const requestsApi = {
   getPending: () => api.get('/api/requests?pending=true'),
-  create: (name) => api.post('/api/requests', { name }),
+  create: (requestData) => {
+    // Handle both old format (string) and new format (object)
+    if (typeof requestData === 'string') {
+      return api.post('/api/requests', { name: requestData });
+    }
+    return api.post('/api/requests', requestData);
+  },
   getById: (id) => api.get(`/api/requests?id=${id}`),
   updateStatus: (id, status) => api.put(`/api/requests?id=${id}`, { status }),
   delete: (id) => api.delete(`/api/requests?id=${id}`),

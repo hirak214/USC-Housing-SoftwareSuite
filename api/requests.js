@@ -38,17 +38,52 @@ export default async (req, res) => {
       }
     }
   } else if (req.method === 'POST') {
-    // POST /api/requests { name }
+    // POST /api/requests { firstName, lastName, email, phone } or { name } (backward compatibility)
     try {
-      const { name } = req.body;
-      if (!name || name.trim().length === 0) {
-        return res.status(400).json({ error: 'Name is required' });
+      const { firstName, lastName, email, phone, name } = req.body;
+      
+      let fullName = '';
+      let requestEmail = null;
+      let requestPhone = null;
+      
+      if (firstName && lastName) {
+        // New format with separate fields
+        if (!firstName.trim() || !lastName.trim()) {
+          return res.status(400).json({ error: 'First name and last name are required' });
+        }
+        if (!email || !email.trim()) {
+          return res.status(400).json({ error: 'Email is required' });
+        }
+        if (!phone || !phone.trim()) {
+          return res.status(400).json({ error: 'Phone number is required' });
+        }
+        
+        fullName = `${firstName.trim()} ${lastName.trim()}`;
+        requestEmail = email.trim();
+        requestPhone = phone.trim();
+      } else if (name) {
+        // Old format for backward compatibility
+        if (!name.trim()) {
+          return res.status(400).json({ error: 'Name is required' });
+        }
+        fullName = name.trim();
+      } else {
+        return res.status(400).json({ error: 'Name or first/last name is required' });
       }
+      
       const doc = {
-        name: name.trim(),
+        name: fullName,
+        firstName: firstName ? firstName.trim() : null,
+        lastName: lastName ? lastName.trim() : null,
+        email: requestEmail,
+        phone: requestPhone,
         status: 'pending',
         createdAt: new Date(),
+        updatedAt: new Date(),
+        assignedCardId: null,
+        processedBy: null
       };
+      
       const result = await collection.insertOne(doc);
       return res.status(201).json({ ...doc, _id: result.insertedId });
     } catch (error) {

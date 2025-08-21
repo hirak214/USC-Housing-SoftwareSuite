@@ -2,7 +2,6 @@
   "name": "troy-csc-auto",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:client\"",
     "dev:api": "node dev-server.js",

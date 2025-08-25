@@ -1,4 +1,4 @@
-# Troy CSC Auto
+# USC Housing Software Suite
 
 A fully client-side React web application for automated Excel file processing. Built with Vite, React, TailwindCSS, and SheetJS.
 

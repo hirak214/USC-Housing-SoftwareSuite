@@ -27,10 +27,10 @@ function AuditorApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center animate-fade-in">
             <h1 className="app-title mb-4" style={{ fontSize: '2.5rem' }}>
-              Troy CSC Package Auditor
+              USC Housing Software Suite
             </h1>
             <p className="app-subtitle max-w-3xl mx-auto leading-relaxed">
-              Troy CSC Package Auditor is a tool that helps you create a list of packages that need to be audited.
+              Comprehensive software solutions for USC Housing operations, including package auditing and guest card management.
             </p>
             <div className="mt-6 flex justify-center">
               <div className="inline-flex items-center px-4 py-2 bg-troy-gold/10 text-troy-red rounded-full text-sm font-medium">
@@ -139,13 +139,13 @@ function AuditorApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="border-t border-gray-700 mt-8 pt-8 text-center">
             <p className="text-gray-400 text-sm">
-              &copy; 5 Troy CSC Auto. Built with ❤️ for efficient data processing.
+              &copy; 2024 University of Southern California Housing. Built for USC Housing operations.
             </p>
             <p className="text-gray-500 text-xs mt-2">
-              Secure client-side processing • No data leaves your device
+              Comprehensive software solutions for USC Housing management
             </p>
             <p className="text-gray-500 text-xs mt-2">
-              For any questions or support, please contact us at <a href="mailto:hirak214@gmail.com" className="text-troy-red">Hirak Desai</a>
+              For technical support, please contact USC Housing IT Department
             </p>
           </div>
         </div>

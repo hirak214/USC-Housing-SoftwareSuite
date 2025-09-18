@@ -1,7 +1,8 @@
 {
-  "name": "troy-csc-auto",
+  "name": "usc-housing-software-suite",
+  "description": "Comprehensive software solutions for USC Housing operations",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:client\"",
     "dev:api": "node dev-server.js",

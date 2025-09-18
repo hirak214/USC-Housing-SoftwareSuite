@@ -11,6 +11,7 @@ import RequestCard from './src/pages/guestCard/RequestCard'
 import PendingRequests from './src/pages/guestCard/PendingRequests'
 import AssignCard from './src/pages/guestCard/AssignCard'
 import ReturnCard from './src/pages/guestCard/ReturnCard'
+import CardManagement from './src/pages/guestCard/CardManagement'
 import Logs from './src/pages/guestCard/Logs'
 import PublicRequestCard from './src/pages/guestCard/PublicRequestCard'
 
@@ -163,6 +164,7 @@ function GuestCardInventoryApp() {
           <Route path="pending" element={<PendingRequests />} />
           <Route path="assign/:requestId" element={<AssignCard />} />
           <Route path="return" element={<ReturnCard />} />
+          <Route path="management" element={<CardManagement />} />
           <Route path="logs" element={<Logs />} />
         </Routes>
       </main>

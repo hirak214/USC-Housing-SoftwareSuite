@@ -31,6 +31,8 @@ export const cardsApi = {
     api.post('/api/cards?action=unassign', { cardNumber }),
   getStatus: (cardNumber) =>
     api.get(`/api/cards?cardNumber=${cardNumber}`),
+  toggleActive: (cardNumber, isActive) =>
+    api.put('/api/cards?action=toggleActive', { cardNumber, isActive }),
 };
 
 export const logsApi = {

@@ -16,10 +16,13 @@ export default async (req, res) => {
         if (!cardNumber || !userName) {
           return res.status(400).json({ error: 'Card number and user name are required' });
         }
-        // Check if card is already assigned
+        // Check if card is already assigned or inactive
         const existingCard = await cards.findOne({ cardNumber });
         if (existingCard && existingCard.isAssigned) {
           return res.status(400).json({ error: 'Card already assigned' });
+        }
+        if (existingCard && existingCard.isActive === false) {
+          return res.status(400).json({ error: 'Card is inactive and cannot be assigned' });
         }
         // Create or update card
         let card;
@@ -41,6 +44,7 @@ export default async (req, res) => {
             assignedTo: userName,
             assignedAt: new Date(),
             isAssigned: true,
+            isActive: true,
           };
           await cards.insertOne(doc);
           card = doc;
@@ -129,14 +133,52 @@ export default async (req, res) => {
       }
       const card = await cards.findOne({ cardNumber });
       if (!card) {
-        return res.status(200).json({ exists: false, isAssigned: false });
+        return res.status(200).json({ exists: false, isAssigned: false, isActive: true });
       }
       return res.status(200).json({ exists: true, ...card });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
+  } else if (req.method === 'PUT') {
+    // PUT /api/cards?action=toggleActive
+    if (req.query.action === 'toggleActive') {
+      try {
+        const { cardNumber, isActive } = req.body;
+        if (!cardNumber || typeof isActive !== 'boolean') {
+          return res.status(400).json({ error: 'Card number and isActive status are required' });
+        }
+        
+        // Check if card exists
+        const existingCard = await cards.findOne({ cardNumber });
+        if (!existingCard) {
+          return res.status(404).json({ error: 'Card not found' });
+        }
+        
+        // Update card active status
+        await cards.updateOne(
+          { cardNumber },
+          { $set: { isActive } }
+        );
+        
+        // Log the status change
+        await logs.insertOne({
+          action: 'status_changed',
+          cardNumber,
+          user: 'System',
+          userIdentifier: 'System',
+          details: `Card ${isActive ? 'activated' : 'deactivated'}`,
+          timestamp: new Date(),
+        });
+        
+        return res.status(200).json({ message: `Card ${isActive ? 'activated' : 'deactivated'} successfully` });
+      } catch (error) {
+        return res.status(500).json({ error: error.message });
+      }
+    } else {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
   } else {
-    res.setHeader('Allow', ['POST', 'GET']);
+    res.setHeader('Allow', ['POST', 'GET', 'PUT']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
   } catch (error) {

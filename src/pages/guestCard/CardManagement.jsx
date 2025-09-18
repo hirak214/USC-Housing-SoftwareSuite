@@ -34,8 +34,6 @@ const CardManagement = () => {
   };
 
   const fetchCardData = async (cardNum) => {
-    console.log('fetchCardData called with:', cardNum);
-    
     if (!cardNum || !isValidCardNumber(cardNum)) {
       setError('Please enter a valid 9-digit card number');
       return;
@@ -46,22 +44,16 @@ const CardManagement = () => {
     setMessage('');
 
     try {
-      console.log('Fetching card status for:', cardNum);
       // Get card status
       const cardResponse = await cardsApi.getStatus(cardNum);
-      console.log('Card response:', cardResponse);
       const card = cardResponse.data;
 
-      console.log('Fetching logs...');
       // Get card history from logs
       const logsResponse = await logsApi.getAll();
       const allLogs = logsResponse.data || [];
       const history = allLogs
         .filter(log => log.cardNumber === cardNum)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-      console.log('Card data:', card);
-      console.log('Card history:', history);
 
       setCardData({
         ...card,
@@ -70,7 +62,6 @@ const CardManagement = () => {
       });
       setCardHistory(history);
     } catch (err) {
-      console.error('Error fetching card data:', err);
       setError(err.response?.data?.error || 'Failed to fetch card data');
       setCardData(null);
       setCardHistory([]);
@@ -146,22 +137,6 @@ const CardManagement = () => {
           <p className="text-xs text-gray-500 mt-1">
             Swipe the magnetic strip or manually type the card number. Swipe data will be automatically cleaned.
           </p>
-          
-          {/* Test buttons for debugging */}
-          <div className="mt-2 flex space-x-2">
-            <button
-              onClick={() => setCardNumber('123456789')}
-              className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
-            >
-              Test Card 1
-            </button>
-            <button
-              onClick={() => setCardNumber('987654321')}
-              className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
-            >
-              Test Card 2
-            </button>
-          </div>
           {cardNumber && isValidCardNumber(cardNumber) && (
             <div className="mt-2">
               <p className="text-xs text-green-600 mb-2">

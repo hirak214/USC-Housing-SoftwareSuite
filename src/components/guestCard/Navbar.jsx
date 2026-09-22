@@ -6,7 +6,8 @@ import {
   UserPlusIcon, 
   ArrowUturnLeftIcon,
   DocumentTextIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  QrCodeIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
@@ -17,6 +18,7 @@ const Navbar = () => {
     { path: '/guest-card-inventory/pending', label: 'Pending Requests', icon: ClipboardDocumentListIcon },
     { path: '/guest-card-inventory/return', label: 'Return Card', icon: ArrowUturnLeftIcon },
     { path: '/guest-card-inventory/management', label: 'Card Management', icon: Cog6ToothIcon },
+    { path: '/guest-card-inventory/qr-code', label: 'QR Code', icon: QrCodeIcon },
     { path: '/guest-card-inventory/logs', label: 'Logs', icon: DocumentTextIcon },
   ];
 

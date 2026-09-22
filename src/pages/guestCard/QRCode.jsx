@@ -152,7 +152,7 @@ const GuestCardQRCode = () => {
       <li><span class="num">3</span><span>Collect your card at the front desk.</span></li>
     </ol>
 
-    <div class="footer">© ${new Date().getFullYear()} USC Housing · Troy CSC</div>
+    <div class="footer">© 2026 Troy CSC</div>
   </div>
   <script>
     window.onload = function () {
@@ -323,7 +323,7 @@ const GuestCardQRCode = () => {
               </ol>
 
               <div className="mt-auto text-[9px] text-gray-400 pt-4">
-                © {new Date().getFullYear()} USC Housing · Troy CSC
+                © 2026 Troy CSC
               </div>
             </div>
           </div>

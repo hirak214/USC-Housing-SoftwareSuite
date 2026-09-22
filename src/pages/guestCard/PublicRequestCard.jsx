@@ -133,8 +133,7 @@ const PublicRequestCard = () => {
             <UserIcon className="h-10 w-10 text-troy-red" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Troy CSC</h1>
-          <h2 className="text-2xl font-semibold text-troy-red mb-2">Guest Card Request</h2>
-          <p className="text-gray-600">Request your guest access card</p>
+          <h2 className="text-2xl font-semibold text-troy-red">Guest Card Request</h2>
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8">
@@ -253,7 +252,7 @@ const PublicRequestCard = () => {
 
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
-            © 2025 Troy CSC • Secure Guest Access System
+            © 2026 Troy CSC
           </p>
         </div>
       </div>

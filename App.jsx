@@ -13,6 +13,7 @@ import AssignCard from './src/pages/guestCard/AssignCard'
 import ReturnCard from './src/pages/guestCard/ReturnCard'
 import CardManagement from './src/pages/guestCard/CardManagement'
 import Logs from './src/pages/guestCard/Logs'
+import GuestCardQRCode from './src/pages/guestCard/QRCode'
 import PublicRequestCard from './src/pages/guestCard/PublicRequestCard'
 
 function AuditorApp() {
@@ -165,6 +166,7 @@ function GuestCardInventoryApp() {
           <Route path="assign/:requestId" element={<AssignCard />} />
           <Route path="return" element={<ReturnCard />} />
           <Route path="management" element={<CardManagement />} />
+          <Route path="qr-code" element={<GuestCardQRCode />} />
           <Route path="logs" element={<Logs />} />
         </Routes>
       </main>

@@ -280,7 +280,7 @@ const Logs = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="w-full">
       {/* Header */}
       <div className="mb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>

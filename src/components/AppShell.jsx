@@ -3,7 +3,7 @@ import AppSidebar from './AppSidebar'
 import Footer from './Footer'
 
 // Per-app shell: each app passes its OWN scoped sidebar nav + brand title.
-export default function AppShell({ children, sections, brandTitle, maxWidth = 'max-w-5xl' }) {
+export default function AppShell({ children, sections, brandTitle, maxWidth = 'max-w-none' }) {
   return (
     <div className="min-h-screen bg-slate-50">
       <AppSidebar sections={sections} brandTitle={brandTitle} />

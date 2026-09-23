@@ -1,4 +1,4 @@
-import clientPromise from './mongo.js';
+import connectToDatabase from './mongo.js';
 import { ObjectId } from 'mongodb';
 
 // Persists processed USC Package Auditor runs — raw rows only (no PDF).
@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 // can be re-opened online and printed from the stored values.
 export default async (req, res) => {
   try {
-    const client = await clientPromise;
+    const client = await connectToDatabase();
     const db = client.db('guest-card-system');
     const collection = db.collection('audit-runs');
 

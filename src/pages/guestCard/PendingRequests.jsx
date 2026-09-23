@@ -49,7 +49,7 @@ const PendingRequests = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <div className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="display-title text-2xl">Pending requests</h1>

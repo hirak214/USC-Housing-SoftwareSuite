@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { requestsApi } from '../../api/guestCardApi';
-import { UserIcon } from '@heroicons/react/24/outline';
 
 const RequestCard = () => {
   const [formData, setFormData] = useState({
@@ -74,112 +73,83 @@ const RequestCard = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-lg mx-auto">
+      <div className="mb-6">
+        <h1 className="display-title text-2xl">Request a guest card</h1>
+        <p className="text-sm text-slate-500 mt-1">Enter the guest's details to add them to the pending queue.</p>
+      </div>
+
       <div className="card">
-        <div className="text-center mb-6">
-          <UserIcon className="h-12 w-12 text-troy-red mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900">Request a Guest Card</h2>
-          <p className="text-gray-600 mt-2">Please fill out your information to request a guest card</p>
-        </div>
+        <div className="card-content">
+          {error && <div className="alert alert-error mb-4">{error}</div>}
+          {message && <div className="alert alert-success mb-4">{message}</div>}
 
-        {error && (
-          <div className="alert-error">
-            {error}
-          </div>
-        )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="form-label">First name</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="First name"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="form-label">Last name</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Last name"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
 
-        {message && (
-          <div className="alert-success">
-            {message}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                First Name *
-              </label>
+              <label htmlFor="email" className="form-label">Email address</label>
               <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="First name"
+                placeholder="name@usc.edu"
                 required
                 disabled={loading}
               />
             </div>
+
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                Last Name *
-              </label>
+              <label htmlFor="phone" className="form-label">Phone number</label>
               <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="Last name"
+                placeholder="(123) 456-7890"
                 required
                 disabled={loading}
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="input-field"
-              placeholder="your.email@example.com"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="input-field"
-              placeholder="(123) 456-7890"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full ${loading ? 'btn-secondary' : 'btn-primary'}`}
-          >
-            {loading ? 'Submitting...' : 'Submit Request'}
-          </button>
-        </form>
-
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-medium text-blue-900 mb-2">What happens next?</h3>
-          <ol className="text-sm text-blue-800 space-y-1">
-            <li>1. Your request will be added to the pending queue</li>
-            <li>2. An admin will assign you a guest card</li>
-            <li>3. You'll receive your card from the front desk</li>
-          </ol>
+            <button type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? 'Submitting…' : 'Submit request'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

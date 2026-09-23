@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import QRCode from 'qrcode';
 import {
-  QrCodeIcon,
   ArrowDownTrayIcon,
   PrinterIcon,
   ClipboardDocumentIcon,
@@ -113,31 +112,31 @@ const GuestCardQRCode = () => {
       align-items: center;
       text-align: center;
     }
-    .brand { font-size: 13pt; font-weight: 700; letter-spacing: 0.14em; color: #990000; text-transform: uppercase; }
-    .brand-sub { font-size: 9pt; letter-spacing: 0.24em; color: #b8860b; text-transform: uppercase; margin-top: 2mm; }
-    .rule { width: 34mm; height: 3px; background: #FFCC00; border-radius: 2px; margin: 5mm auto 0; }
-    .headline { font-size: 26pt; font-weight: 800; line-height: 1.1; margin: 10mm 0 8mm; color: #1a1a1a; }
+    .brand { font-size: 13pt; font-weight: 600; letter-spacing: 0.14em; color: #990000; text-transform: uppercase; }
+    .brand-sub { font-size: 9pt; letter-spacing: 0.24em; color: #64748b; text-transform: uppercase; margin-top: 2mm; }
+    .rule { width: 34mm; height: 2px; background: #990000; border-radius: 2px; margin: 5mm auto 0; }
+    .headline { font-size: 26pt; font-weight: 600; line-height: 1.1; margin: 10mm 0 8mm; color: #1a1a1a; }
     .qr-frame {
-      border: 3px solid #990000;
-      border-radius: 10px;
+      border: 2px solid #990000;
+      border-radius: 8px;
       padding: 6mm;
       background: #ffffff;
     }
     .qr-frame img { display: block; width: 82mm; height: 82mm; }
     .steps { margin: 9mm 0 0; padding: 0; list-style: none; text-align: left; max-width: 108mm; }
-    .steps li { display: flex; align-items: flex-start; font-size: 11pt; color: #333; margin-bottom: 3.5mm; }
+    .steps li { display: flex; align-items: flex-start; font-size: 11pt; color: #334155; margin-bottom: 3.5mm; }
     .steps .num {
       flex: 0 0 auto; width: 7mm; height: 7mm; border-radius: 50%;
-      background: #990000; color: #fff; font-weight: 700; font-size: 9pt;
+      background: #990000; color: #fff; font-weight: 600; font-size: 9pt;
       display: flex; align-items: center; justify-content: center; margin-right: 3mm;
     }
-    .footer { font-size: 8.5pt; color: #999; margin-top: auto; padding-top: 5mm; }
+    .footer { font-size: 8.5pt; color: #94a3b8; margin-top: auto; padding-top: 5mm; }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="brand">USC Housing</div>
-    <div class="brand-sub">Troy CSC Guest Card</div>
+    <div class="brand-sub">Guest Card</div>
     <div class="rule"></div>
 
     <h1 class="headline">Request Your<br/>Guest Card</h1>
@@ -152,7 +151,7 @@ const GuestCardQRCode = () => {
       <li><span class="num">3</span><span>Collect your card at the front desk.</span></li>
     </ol>
 
-    <div class="footer">© 2026 Troy CSC</div>
+    <div class="footer">USC Housing</div>
   </div>
   <script>
     window.onload = function () {
@@ -170,130 +169,109 @@ const GuestCardQRCode = () => {
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <QrCodeIcon className="h-8 w-8 text-troy-red" />
-          <h1 className="text-3xl font-bold text-gray-900">Guest Card QR Code</h1>
-        </div>
-        <p className="text-gray-600">
-          Print or display this QR code so guests can scan it and open the guest
-          card request form on their own phone.
+      <div className="mb-6">
+        <h1 className="display-title text-2xl">Guest card QR code</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Print or display this code so guests can open the request form on their phone.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Controls */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <label
-              htmlFor="requestUrl"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
-              Request Form URL
-            </label>
-            <p className="text-xs text-gray-500 mb-3">
-              The QR code points here. It defaults to this site's public request
-              form. Change it only if you host the form somewhere else.
-            </p>
-            <div className="flex items-stretch gap-2">
-              <input
-                id="requestUrl"
-                type="url"
-                value={requestUrl}
-                onChange={(e) => setRequestUrl(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-troy-red focus:border-transparent text-sm"
-                placeholder="https://example.com/request-card"
-              />
-              <button
-                type="button"
-                onClick={handleCopyUrl}
-                title="Copy URL"
-                className="flex items-center justify-center px-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          <div className="card">
+            <div className="card-content">
+              <label htmlFor="requestUrl" className="form-label">
+                Request form URL
+              </label>
+              <div className="flex items-stretch gap-2">
+                <input
+                  id="requestUrl"
+                  type="url"
+                  value={requestUrl}
+                  onChange={(e) => setRequestUrl(e.target.value)}
+                  className="input-field"
+                  placeholder="https://example.com/request-card"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  title="Copy URL"
+                  className="btn-secondary px-3"
+                >
+                  {copied ? (
+                    <CheckIcon className="h-5 w-5 text-cardinal-600" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-5 w-5 text-slate-600" />
+                  )}
+                </button>
+              </div>
+              {requestUrl.trim() !== defaultUrl && (
+                <button
+                  type="button"
+                  onClick={() => setRequestUrl(defaultUrl)}
+                  className="mt-2 text-xs text-cardinal-700 hover:underline"
+                >
+                  Reset to default
+                </button>
+              )}
+              <a
+                href={requestUrl.trim() || REQUEST_PATH}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center text-sm text-cardinal-700 hover:underline"
               >
-                {copied ? (
-                  <CheckIcon className="h-5 w-5 text-green-600" />
-                ) : (
-                  <ClipboardDocumentIcon className="h-5 w-5 text-gray-600" />
-                )}
-              </button>
+                <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />
+                Open request form in a new tab
+              </a>
             </div>
-            {requestUrl.trim() !== defaultUrl && (
-              <button
-                type="button"
-                onClick={() => setRequestUrl(defaultUrl)}
-                className="mt-2 text-xs text-troy-red hover:underline"
-              >
-                Reset to default
-              </button>
-            )}
-            <a
-              href={requestUrl.trim() || REQUEST_PATH}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center text-sm text-troy-red hover:underline"
-            >
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />
-              Open request form in a new tab
-            </a>
           </div>
 
           {/* Actions */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700 mb-1">Download &amp; Print</h2>
-            <button
-              type="button"
-              onClick={handleDownloadQr}
-              disabled={!qrDataUrl}
-              className={`w-full flex items-center justify-center px-4 py-3 rounded-lg font-medium transition-colors ${
-                qrDataUrl
-                  ? 'border-2 border-troy-red text-troy-red hover:bg-troy-red hover:text-white'
-                  : 'border-2 border-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-              Download QR Code Only (PNG)
-            </button>
-            <button
-              type="button"
-              onClick={handlePrintPoster}
-              disabled={!qrDataUrl}
-              className={`w-full flex items-center justify-center px-4 py-3 rounded-lg font-medium transition-colors ${
-                qrDataUrl
-                  ? 'bg-troy-red text-white hover:bg-red-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <PrinterIcon className="h-5 w-5 mr-2" />
-              Print Full Poster (A5)
-            </button>
-            <p className="text-xs text-gray-500 pt-1">
-              The poster prints on a single A5 page with USC branding and
-              step-by-step instructions for guests.
-            </p>
+          <div className="card">
+            <div className="card-content space-y-3">
+              <button
+                type="button"
+                onClick={handleDownloadQr}
+                disabled={!qrDataUrl}
+                className="btn-secondary w-full"
+              >
+                <ArrowDownTrayIcon className="h-5 w-5" />
+                Download QR code (PNG)
+              </button>
+              <button
+                type="button"
+                onClick={handlePrintPoster}
+                disabled={!qrDataUrl}
+                className="btn-primary w-full"
+              >
+                <PrinterIcon className="h-5 w-5" />
+                Print poster (A5)
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Live poster preview */}
         <div className="lg:col-span-3">
-          <div className="bg-gray-100 rounded-2xl p-6 flex items-center justify-center">
+          <div className="bg-slate-100 rounded-lg p-6 flex items-center justify-center">
             <div
-              className="bg-white shadow-2xl w-full max-w-sm mx-auto flex flex-col items-center text-center"
+              className="bg-white shadow-card rounded-md w-full max-w-sm mx-auto flex flex-col items-center text-center"
               style={{ aspectRatio: '148 / 210', padding: '8%' }}
             >
-              <div className="text-troy-red font-bold uppercase tracking-widest text-sm">
+              <div className="text-cardinal-600 font-semibold uppercase tracking-widest text-sm">
                 USC Housing
               </div>
-              <div className="text-yellow-600 uppercase tracking-[0.2em] text-[10px] mt-1">
-                Troy CSC Guest Card
+              <div className="text-slate-500 uppercase tracking-[0.2em] text-[10px] mt-1">
+                Guest Card
               </div>
-              <div className="w-16 h-1 bg-troy-gold rounded mt-3" />
+              <div className="w-16 h-0.5 bg-cardinal-600 rounded mt-3" />
 
-              <h2 className="text-2xl font-extrabold text-gray-900 leading-tight mt-6 mb-6">
+              <h2 className="text-2xl font-semibold text-slate-900 leading-tight mt-6 mb-6">
                 Request Your Guest Card
               </h2>
 
-              <div className="border-[3px] border-troy-red rounded-xl p-3 bg-white">
+              <div className="border-2 border-cardinal-600 rounded-lg p-3 bg-white">
                 {qrDataUrl ? (
                   <img
                     src={qrDataUrl}
@@ -301,34 +279,34 @@ const GuestCardQRCode = () => {
                     className="w-40 h-40 block"
                   />
                 ) : (
-                  <div className="w-40 h-40 flex items-center justify-center text-gray-400 text-sm">
+                  <div className="w-40 h-40 flex items-center justify-center text-slate-400 text-sm">
                     {generating ? 'Generating…' : 'No QR code'}
                   </div>
                 )}
               </div>
 
-              <ol className="text-left text-xs text-gray-700 space-y-2 mt-6 w-full max-w-[220px]">
+              <ol className="text-left text-xs text-slate-600 space-y-2 mt-6 w-full max-w-[220px]">
                 <li className="flex items-start">
-                  <span className="flex-none w-5 h-5 rounded-full bg-troy-red text-white text-[10px] font-bold flex items-center justify-center mr-2">1</span>
+                  <span className="flex-none w-5 h-5 rounded-full bg-cardinal-600 text-white text-[10px] font-semibold flex items-center justify-center mr-2">1</span>
                   Scan the QR code.
                 </li>
                 <li className="flex items-start">
-                  <span className="flex-none w-5 h-5 rounded-full bg-troy-red text-white text-[10px] font-bold flex items-center justify-center mr-2">2</span>
+                  <span className="flex-none w-5 h-5 rounded-full bg-cardinal-600 text-white text-[10px] font-semibold flex items-center justify-center mr-2">2</span>
                   Fill in your name, email, and phone number.
                 </li>
                 <li className="flex items-start">
-                  <span className="flex-none w-5 h-5 rounded-full bg-troy-red text-white text-[10px] font-bold flex items-center justify-center mr-2">3</span>
+                  <span className="flex-none w-5 h-5 rounded-full bg-cardinal-600 text-white text-[10px] font-semibold flex items-center justify-center mr-2">3</span>
                   Collect your card at the front desk.
                 </li>
               </ol>
 
-              <div className="mt-auto text-[9px] text-gray-400 pt-4">
-                © 2026 Troy CSC
+              <div className="mt-auto text-[9px] text-slate-400 pt-4">
+                USC Housing
               </div>
             </div>
           </div>
-          <p className="text-center text-xs text-gray-500 mt-3">
-            Live preview of the A5 poster
+          <p className="text-center text-xs text-slate-500 mt-3">
+            A5 poster preview
           </p>
         </div>
       </div>

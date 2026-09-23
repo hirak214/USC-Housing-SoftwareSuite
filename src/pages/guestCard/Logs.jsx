@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { logsApi, cardsApi, requestsApi } from '../../api/guestCardApi';
-import { DocumentTextIcon, CreditCardIcon, FunnelIcon, DocumentArrowDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { FunnelIcon, DocumentArrowDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import * as XLSX from 'xlsx';
 
 const Logs = () => {
@@ -44,16 +44,29 @@ const Logs = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const getActionColor = (action) => {
+  const getActionBadgeClass = (action) => {
     switch (action) {
       case 'assigned':
-        return 'bg-green-100 text-green-800';
+        return 'badge badge-success';
       case 'unassigned':
-        return 'bg-red-100 text-red-800';
+        return 'badge badge-neutral';
       case 'status_changed':
-        return 'bg-purple-100 text-purple-800';
+        return 'badge badge-info';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'badge badge-neutral';
+    }
+  };
+
+  const getActionLabel = (action) => {
+    switch (action) {
+      case 'assigned':
+        return 'Assigned';
+      case 'unassigned':
+        return 'Returned';
+      case 'status_changed':
+        return 'Status changed';
+      default:
+        return action;
     }
   };
 
@@ -149,7 +162,7 @@ const Logs = () => {
     
     // Generate filename with current date
     const today = new Date().toISOString().split('T')[0];
-    const filename = `Troy_CSC_Card_Logs_${today}.xlsx`;
+    const filename = `USC_Card_Logs_${today}.xlsx`;
     
     XLSX.writeFile(workbook, filename);
   };
@@ -261,76 +274,72 @@ const Logs = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-troy-red"></div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="card">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
-          <div className="flex items-center space-x-3">
-            <DocumentTextIcon className="h-8 w-8 text-troy-red" />
-            <h2 className="text-2xl font-bold text-gray-900">Card Activity Logs</h2>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="btn-outline text-sm flex items-center space-x-2"
-            >
-              <FunnelIcon className="h-4 w-4" />
-              <span>Filters</span>
-            </button>
-            
-            <button
-              onClick={exportToExcel}
-              disabled={filteredLogs.length === 0}
-              className="btn-secondary text-sm flex items-center space-x-2"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4" />
-              <span>Export Excel</span>
-            </button>
-            
-            <button
-              onClick={fetchLogs}
-              className="btn-secondary text-sm"
-            >
-              Refresh
-            </button>
-          </div>
+      {/* Header */}
+      <div className="mb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div>
+          <h1 className="display-title text-2xl">Card activity logs</h1>
+          <p className="text-sm text-slate-500 mt-1">Review every card assignment and return, and export the record.</p>
         </div>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="btn-secondary btn-small flex items-center gap-2"
+          >
+            <FunnelIcon className="h-4 w-4" />
+            <span>Filters</span>
+          </button>
+
+          <button
+            onClick={exportToExcel}
+            disabled={filteredLogs.length === 0}
+            className="btn-secondary btn-small flex items-center gap-2"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" />
+            <span>Export Excel</span>
+          </button>
+
+          <button
+            onClick={fetchLogs}
+            className="btn-secondary btn-small"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Filters Panel */}
+      {showFilters && (
+        <div className="card mb-6">
+          <div className="card-content">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Action Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Action
-                </label>
+                <label className="form-label">Filter by action</label>
                 <select
                   value={filters.action}
                   onChange={(e) => handleFilterChange('action', e.target.value)}
-                  className="input-field w-full"
+                  className="form-select w-full"
                 >
-                  <option value="all">All Actions</option>
-                  <option value="assigned">Assigned Only</option>
-                  <option value="unassigned">Returned Only</option>
-                  <option value="cards-out">Cards Still Out</option>
+                  <option value="all">All actions</option>
+                  <option value="assigned">Assigned only</option>
+                  <option value="unassigned">Returned only</option>
+                  <option value="cards-out">Cards still out</option>
                 </select>
               </div>
 
               {/* Search Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search
-                </label>
+                <label className="form-label">Search</label>
                 <div className="relative">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <MagnifyingGlassIcon className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={filters.search}
@@ -343,9 +352,7 @@ const Logs = () => {
 
               {/* Date From */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  From Date
-                </label>
+                <label className="form-label">From date</label>
                 <input
                   type="date"
                   value={filters.dateFrom}
@@ -356,9 +363,7 @@ const Logs = () => {
 
               {/* Date To */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  To Date
-                </label>
+                <label className="form-label">To date</label>
                 <input
                   type="date"
                   value={filters.dateTo}
@@ -367,283 +372,243 @@ const Logs = () => {
                 />
               </div>
             </div>
-            
+
             <div className="mt-4 flex justify-end">
               <button
                 onClick={clearFilters}
-                className="btn-outline text-sm"
+                className="btn-ghost btn-small"
               >
-                Clear Filters
+                Clear filters
               </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Statistics Cards */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-medium text-blue-900 mb-2">Total Activities</h3>
-            <p className="text-2xl font-bold text-blue-600">{logs.length}</p>
+      {/* Statistics Cards */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="stat-card">
+          <div className="stat-number">{logs.length}</div>
+          <div className="stat-label">Total activities</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-number">
+            {logs.filter(log => log.action === 'assigned').length}
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h3 className="font-medium text-green-900 mb-2">Cards Assigned</h3>
-            <p className="text-2xl font-bold text-green-600">
-              {logs.filter(log => log.action === 'assigned').length}
-            </p>
+          <div className="stat-label">Cards assigned</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-number">
+            {logs.filter(log => log.action === 'unassigned').length}
           </div>
-          <div className="p-4 bg-red-50 rounded-lg">
-            <h3 className="font-medium text-red-900 mb-2">Cards Returned</h3>
-            <p className="text-2xl font-bold text-red-600">
-              {logs.filter(log => log.action === 'unassigned').length}
-            </p>
-          </div>
-          <div className="p-4 bg-yellow-50 rounded-lg">
-            <h3 className="font-medium text-yellow-900 mb-2">Cards Still Out</h3>
-            <p className="text-2xl font-bold text-yellow-600">
-              {getCardsStillOut().length}
-            </p>
-          </div>
+          <div className="stat-label">Cards returned</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-number">{getCardsStillOut().length}</div>
+          <div className="stat-label">Cards still out</div>
+        </div>
+      </div>
+
+      {error && <div className="alert alert-error mb-6">{error}</div>}
+
+      {/* Results Info and Pagination Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <div className="text-sm text-slate-500">
+          Showing {paginatedLogs.length} of {filteredLogs.length} entries
+          {filteredLogs.length !== logs.length && ` (filtered from ${logs.length} total)`}
         </div>
 
-        {error && (
-          <div className="alert-error mb-6">
-            {error}
-          </div>
-        )}
-
-        {/* Results Info and Pagination Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
-          <div className="text-sm text-gray-600">
-            Showing {paginatedLogs.length} of {filteredLogs.length} entries
-            {filteredLogs.length !== logs.length && ` (filtered from ${logs.length} total)`}
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-700">Show:</label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => handleItemsPerPageChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="input-field w-auto text-sm"
-            >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value="all">All</option>
-            </select>
-          </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-slate-600">Show:</label>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => handleItemsPerPageChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+            className="form-select w-auto text-sm"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value="all">All</option>
+          </select>
         </div>
+      </div>
 
-        {/* Table */}
-        {filteredLogs.length === 0 ? (
-          <div className="text-center py-12">
-            <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No logs found</h3>
-            <p className="text-gray-600">
-              {filters.action === 'all' && !filters.search && !filters.dateFrom && !filters.dateTo
-                ? 'No activity has been recorded yet.'
-                : 'No activities match your current filters.'
-              }
-            </p>
-          </div>
-        ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date & Time
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Card Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Guest/User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Details
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+      {/* Table */}
+      {filteredLogs.length === 0 ? (
+        <div className="text-center text-slate-400 text-sm py-12">
+          {filters.action === 'all' && !filters.search && !filters.dateFrom && !filters.dateTo
+            ? 'No activity has been recorded yet.'
+            : 'No activities match your current filters.'}
+        </div>
+      ) : (
+        <div className="table-container">
+          <div className="table-wrapper">
+            <table className="data-table">
+              <thead className="table-header">
+                <tr>
+                  <th>Date &amp; time</th>
+                  <th>Action</th>
+                  <th>Card number</th>
+                  <th>Guest/User</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
                 {paginatedLogs.map((log) => (
-                    <tr key={log._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>
-                        <div className="font-medium">{new Date(log.timestamp).toLocaleDateString()}</div>
-                        <div className="text-gray-500">{new Date(log.timestamp).toLocaleTimeString()}</div>
-                      </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getActionColor(log.action)}`}>
-                        {log.action === 'assigned' ? 'Assigned' : 
-                         log.action === 'unassigned' ? 'Returned' : 
-                         log.action === 'status_changed' ? 'Status Changed' : 
-                         log.action}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <CreditCardIcon className="h-5 w-5 text-gray-400 mr-3" />
-                        <span className="text-sm font-mono text-gray-900 font-medium">
-                            {log.cardNumber}
-                          </span>
-                        </div>
-                      </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button 
-                        onClick={() => openUserModal(log)} 
-                        className="text-troy-red hover:text-troy-gold hover:underline font-medium transition-colors duration-200"
+                  <tr key={log._id} className="table-row">
+                    <td className="table-cell">
+                      <div className="font-medium text-slate-900">{new Date(log.timestamp).toLocaleDateString()}</div>
+                      <div className="text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</div>
+                    </td>
+                    <td className="table-cell">
+                      <span className={getActionBadgeClass(log.action)}>
+                        {getActionLabel(log.action)}
+                      </span>
+                    </td>
+                    <td className="table-cell">
+                      <span className="text-sm font-mono text-slate-900 font-medium">
+                        {log.cardNumber}
+                      </span>
+                    </td>
+                    <td className="table-cell">
+                      <button
+                        onClick={() => openUserModal(log)}
+                        className="text-cardinal-700 hover:text-cardinal-800 hover:underline font-medium transition-colors duration-150"
                       >
                         {log.userIdentifier || log.user}
                       </button>
                       {log.userIdentifier && log.userIdentifier !== log.user && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {log.userEmail && `📧 ${log.userEmail}`}
-                          {log.userPhone && ` 📞 ${log.userPhone}`}
+                        <div className="text-xs text-slate-500 mt-1">
+                          {log.userEmail}
+                          {log.userEmail && log.userPhone && ' · '}
+                          {log.userPhone}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                    <td className="table-cell text-slate-500 max-w-xs">
                       {log.details || '-'}
                     </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-        )}
-
-        {/* Pagination */}
-        {itemsPerPage !== 'all' && totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              
-              {/* Page numbers */}
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
-                      currentPage === pageNum
-                        ? 'bg-troy-red text-white'
-                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {itemsPerPage !== 'all' && totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <div className="text-sm text-slate-600">
+            Page {currentPage} of {totalPages}
+          </div>
+
+          <div className="flex items-center">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              Previous
+            </button>
+
+            {/* Page numbers */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`pagination-button ${currentPage === pageNum ? 'active' : ''}`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
       {userModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 relative animate-fadeIn">
-            <button onClick={closeUserModal} className="absolute top-2 right-2 text-gray-400 hover:text-troy-red text-2xl font-bold">&times;</button>
-            <h3 className="text-xl font-bold mb-2 text-troy-red">User Details</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="card max-w-lg w-full p-6 rounded-lg relative">
+            <button onClick={closeUserModal} className="btn-ghost btn-small absolute top-3 right-3">Close</button>
+            <h3 className="display-title text-xl mb-4">User details</h3>
             {userModal.loading ? (
-              <div className="py-8 text-center text-gray-500">Loading...</div>
+              <div className="py-8 text-center text-slate-400 text-sm">Loading...</div>
             ) : userModal.error ? (
-              <div className="alert-error">{userModal.error}</div>
+              <div className="alert alert-error">{userModal.error}</div>
             ) : (
-                      <>
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <div className="font-semibold text-lg text-gray-900 mb-2">{userModal.user?.uniqueIdentifier || userModal.user?.name}</div>
-            {userModal.user?.email && (
-              <div className="text-gray-700 text-sm mb-1 flex items-center">
-                <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.94a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {userModal.user.email}
-              </div>
-            )}
-            {userModal.user?.phone && (
-              <div className="text-gray-700 text-sm mb-1 flex items-center">
-                <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                {userModal.user.phone}
-              </div>
-            )}
-            {userModal.user?.createdAt && (
-              <div className="text-gray-500 text-xs">First Request: {formatDate(userModal.user.createdAt)}</div>
-            )}
-          </div>
-
-          {/* Activity Summary */}
-          <div className="mb-4 grid grid-cols-3 gap-2">
-            <div className="text-center p-2 bg-blue-50 rounded">
-              <div className="text-lg font-bold text-blue-600">{userModal.user?.totalActivity || 0}</div>
-              <div className="text-xs text-blue-800">Total Activity</div>
-            </div>
-            <div className="text-center p-2 bg-green-50 rounded">
-              <div className="text-lg font-bold text-green-600">{userModal.user?.cardAssignments || 0}</div>
-              <div className="text-xs text-green-800">Cards Assigned</div>
-            </div>
-            <div className="text-center p-2 bg-red-50 rounded">
-              <div className="text-lg font-bold text-red-600">{userModal.user?.cardReturns || 0}</div>
-              <div className="text-xs text-red-800">Cards Returned</div>
-            </div>
-          </div>
-
-          <div className="mb-2 font-semibold text-gray-800">All Requests:</div>
-          <div className="max-h-32 overflow-y-auto text-sm space-y-2">
-            {userModal.requests.length === 0 ? (
-              <div className="text-gray-400 italic text-center py-4">No requests found for this user.</div>
-            ) : userModal.requests.map((req) => (
-              <div key={req._id} className="border border-gray-200 rounded p-2 bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    req.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    req.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {req.status}
-                  </span>
-                  <span className="text-gray-500 text-xs">{formatDate(req.createdAt)}</span>
+              <>
+                <div className="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="font-semibold text-lg text-slate-900 mb-2">{userModal.user?.uniqueIdentifier || userModal.user?.name}</div>
+                  {userModal.user?.email && (
+                    <div className="text-slate-700 text-sm mb-1">{userModal.user.email}</div>
+                  )}
+                  {userModal.user?.phone && (
+                    <div className="text-slate-700 text-sm mb-1">{userModal.user.phone}</div>
+                  )}
+                  {userModal.user?.createdAt && (
+                    <div className="text-slate-500 text-xs">First request: {formatDate(userModal.user.createdAt)}</div>
+                  )}
                 </div>
-                {req.email && <div className="text-gray-600 text-xs mt-1">📧 {req.email}</div>}
-                {req.phone && <div className="text-gray-600 text-xs">📞 {req.phone}</div>}
-              </div>
-            ))}
-          </div>
-        </>
+
+                {/* Activity Summary */}
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                  <div className="stat-card text-center">
+                    <div className="stat-number">{userModal.user?.totalActivity || 0}</div>
+                    <div className="stat-label">Total activity</div>
+                  </div>
+                  <div className="stat-card text-center">
+                    <div className="stat-number">{userModal.user?.cardAssignments || 0}</div>
+                    <div className="stat-label">Cards assigned</div>
+                  </div>
+                  <div className="stat-card text-center">
+                    <div className="stat-number">{userModal.user?.cardReturns || 0}</div>
+                    <div className="stat-label">Cards returned</div>
+                  </div>
+                </div>
+
+                <div className="mb-2 font-semibold text-slate-800">All requests</div>
+                <div className="max-h-32 overflow-y-auto text-sm space-y-2">
+                  {userModal.requests.length === 0 ? (
+                    <div className="text-slate-400 text-center py-4">No requests found for this user.</div>
+                  ) : userModal.requests.map((req) => (
+                    <div key={req._id} className="border border-slate-200 rounded-md p-2 bg-slate-50">
+                      <div className="flex justify-between items-center">
+                        <span className={`badge ${
+                          req.status === 'pending' ? 'badge-warning' :
+                          req.status === 'completed' ? 'badge-success' :
+                          req.status === 'assigned' ? 'badge-info' :
+                          'badge-neutral'
+                        }`}>
+                          {req.status}
+                        </span>
+                        <span className="text-slate-500 text-xs">{formatDate(req.createdAt)}</span>
+                      </div>
+                      {req.email && <div className="text-slate-600 text-xs mt-1">{req.email}</div>}
+                      {req.phone && <div className="text-slate-600 text-xs">{req.phone}</div>}
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>

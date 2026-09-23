@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCardIcon, ArrowLeftIcon, CheckCircleIcon, XCircleIcon, ClockIcon, UserIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { cardsApi, logsApi } from '../../api/guestCardApi';
 import { extractCardNumber, isValidCardNumber, formatCardNumber } from '../../utils/cardUtils';
 
@@ -13,14 +12,14 @@ const CardManagement = () => {
 
   const handleCardNumberChange = (e) => {
     const rawValue = e.target.value;
-    
+
     // Check if this looks like magnetic stripe data
-    const isLikelySwipeData = 
-      rawValue.includes(';') || 
-      rawValue.includes('=') || 
+    const isLikelySwipeData =
+      rawValue.includes(';') ||
+      rawValue.includes('=') ||
       rawValue.includes('?') ||
       (rawValue.replace(/[^0-9]/g, '').length > 12);
-    
+
     if (isLikelySwipeData) {
       const extracted = extractCardNumber(rawValue);
       setCardNumber(extracted);
@@ -80,7 +79,7 @@ const CardManagement = () => {
     try {
       await cardsApi.toggleActive(cardData.cardNumber, !cardData.isActive);
       setMessage(`Card ${cardData.isActive ? 'deactivated' : 'activated'} successfully`);
-      
+
       // Refresh card data
       await fetchCardData(cardData.cardNumber);
     } catch (err) {
@@ -90,231 +89,172 @@ const CardManagement = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'assigned': return 'text-green-600 bg-green-100';
-      case 'unassigned': return 'text-blue-600 bg-blue-100';
-      case 'status_changed': return 'text-purple-600 bg-purple-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'assigned': return <CheckCircleIcon className="h-4 w-4" />;
-      case 'unassigned': return <XCircleIcon className="h-4 w-4" />;
-      case 'status_changed': return <Cog6ToothIcon className="h-4 w-4" />;
-      default: return <ClockIcon className="h-4 w-4" />;
+  const getActionBadge = (action) => {
+    switch (action) {
+      case 'assigned': return { variant: 'badge-success', label: 'Assigned' };
+      case 'unassigned': return { variant: 'badge-neutral', label: 'Returned' };
+      case 'status_changed': return { variant: 'badge-info', label: 'Status changed' };
+      default: return { variant: 'badge-neutral', label: action };
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <h1 className="display-title text-2xl">Card management</h1>
+        <p className="text-sm text-slate-500 mt-1">Look up a card to view its status and activity.</p>
+      </div>
+
       <div className="card">
-        <div className="flex items-center mb-6">
-          <div className="flex items-center space-x-3">
-            <CreditCardIcon className="h-8 w-8 text-troy-red" />
-            <h2 className="text-2xl font-bold text-gray-900">Card Management</h2>
-          </div>
-        </div>
-
-        {/* Card Input Section */}
-        <div className="mb-8">
-          <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
-            Card Number *
-          </label>
-          <input
-            type="text"
-            id="cardNumber"
-            value={cardNumber}
-            onChange={handleCardNumberChange}
-            className="input-field font-mono text-lg"
-            placeholder="Swipe card or enter card number"
-            required
-            disabled={loading}
-            autoFocus
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Swipe the magnetic strip or manually type the card number. Swipe data will be automatically cleaned.
-          </p>
-          {cardNumber && isValidCardNumber(cardNumber) && (
-            <div className="mt-2">
-              <p className="text-xs text-green-600 mb-2">
-                ✓ Detected card: {formatCardNumber(cardNumber)}
-              </p>
-              <button
-                onClick={() => fetchCardData(cardNumber)}
-                disabled={loading}
-                className="btn-primary text-sm"
-              >
-                {loading ? 'Loading...' : 'View Card Details'}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="alert-error mb-6">
-            {error}
-          </div>
-        )}
-
-        {message && (
-          <div className="alert-success mb-6">
-            {message}
-          </div>
-        )}
-
-        {loading && (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-troy-red"></div>
-          </div>
-        )}
-
-        {/* Card Information */}
-        {cardData && !loading && (
-          <div className="space-y-6">
-            {/* Current Status */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Status</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-white rounded-lg border">
-                  <div className="text-2xl font-bold text-gray-900">{formatCardNumber(cardData.cardNumber)}</div>
-                  <div className="text-sm text-gray-500">Card Number</div>
-                </div>
-                <div className="text-center p-4 bg-white rounded-lg border">
-                  <div className={`text-lg font-semibold ${cardData.isAssigned ? 'text-green-600' : 'text-gray-600'}`}>
-                    {cardData.isAssigned ? 'ASSIGNED' : 'AVAILABLE'}
-                  </div>
-                  <div className="text-sm text-gray-500">Assignment Status</div>
-                </div>
-                <div className="text-center p-4 bg-white rounded-lg border">
-                  <div className={`text-lg font-semibold ${cardData.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                    {cardData.isActive ? 'ACTIVE' : 'INACTIVE'}
-                  </div>
-                  <div className="text-sm text-gray-500">Card Status</div>
-                </div>
-              </div>
-              
-              {cardData.isAssigned && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                  <div className="flex items-center">
-                    <UserIcon className="h-5 w-5 text-blue-600 mr-2" />
-                    <div>
-                      <div className="font-medium text-blue-900">Assigned to: {cardData.assignedTo}</div>
-                      <div className="text-sm text-blue-700">
-                        Since: {new Date(cardData.assignedAt).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Card Management Actions */}
-            <div className="bg-white border rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Card Management</h3>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {cardData.isActive ? 'Deactivate Card' : 'Activate Card'}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {cardData.isActive 
-                      ? 'Inactive cards cannot be assigned to new users' 
-                      : 'Active cards can be assigned to users'
-                    }
-                  </div>
-                </div>
+        <div className="card-content">
+          {/* Card lookup */}
+          <div>
+            <label htmlFor="cardNumber" className="form-label">Card number</label>
+            <input
+              type="text"
+              id="cardNumber"
+              value={cardNumber}
+              onChange={handleCardNumberChange}
+              className="input-field font-mono"
+              placeholder="Swipe card or enter card number"
+              required
+              disabled={loading}
+              autoFocus
+            />
+            <p className="form-help">Swipe the card or type its number.</p>
+            {cardNumber && isValidCardNumber(cardNumber) && (
+              <div className="mt-3">
+                <p className="text-xs text-slate-500 mb-2">
+                  Detected card: {formatCardNumber(cardNumber)}
+                </p>
                 <button
-                  onClick={handleToggleActive}
+                  onClick={() => fetchCardData(cardNumber)}
                   disabled={loading}
-                  className={`px-4 py-2 rounded-md font-medium ${
-                    cardData.isActive 
-                      ? 'bg-red-600 hover:bg-red-700 text-white' 
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className="btn-primary btn-small"
                 >
-                  {loading ? 'Updating...' : (cardData.isActive ? 'Deactivate' : 'Activate')}
+                  {loading ? 'Loading…' : 'View card details'}
                 </button>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Card History */}
-            <div className="bg-white border rounded-lg">
-              <div className="px-6 py-4 border-b">
-                <h3 className="text-lg font-semibold text-gray-900">Card History</h3>
-                <p className="text-sm text-gray-500">Complete activity log for this card</p>
-              </div>
-              
-              {cardHistory.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <ClockIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No activity recorded for this card</p>
+          {error && <div className="alert alert-error mt-4">{error}</div>}
+          {message && <div className="alert alert-success mt-4">{message}</div>}
+
+          {loading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="loading-spinner"></div>
+            </div>
+          )}
+
+          {/* Card information */}
+          {cardData && !loading && (
+            <div className="space-y-6 mt-6">
+              {/* Status tiles */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="stat-card">
+                  <div className="stat-number font-mono">{formatCardNumber(cardData.cardNumber)}</div>
+                  <div className="stat-label">Card number</div>
                 </div>
-              ) : (
-                <div className="divide-y">
-                  {cardHistory.map((log, index) => (
-                    <div key={index} className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-full ${getStatusColor(log.action)}`}>
-                            {getStatusIcon(log.action)}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(log.action)}`}>
-                                {log.action === 'assigned' ? 'Assigned' : 
-                                 log.action === 'unassigned' ? 'Returned' : 
-                                 log.action === 'status_changed' ? 'Status Changed' : 
-                                 log.action}
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {new Date(log.timestamp).toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="mt-2">
-                              <div className="font-medium text-gray-900">
-                                {log.action === 'status_changed' ? 'System' : (log.userIdentifier || log.user)}
-                              </div>
-                              {log.action === 'status_changed' && log.details && (
-                                <div className="text-sm text-gray-500 mt-1">
-                                  {log.details}
-                                </div>
-                              )}
-                              {log.userIdentifier && log.userIdentifier !== log.user && log.action !== 'status_changed' && (
-                                <div className="text-sm text-gray-500 mt-1">
-                                  {log.userEmail && `📧 ${log.userEmail}`}
-                                  {log.userPhone && ` 📞 ${log.userPhone}`}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-mono text-gray-600">
-                            {formatCardNumber(log.cardNumber)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="stat-card">
+                  <span className={`badge ${cardData.isAssigned ? 'badge-info' : 'badge-neutral'}`}>
+                    {cardData.isAssigned ? 'Assigned' : 'Available'}
+                  </span>
+                  <div className="stat-label mt-2">Assignment</div>
+                </div>
+                <div className="stat-card">
+                  <span className={`badge ${cardData.isActive ? 'badge-success' : 'badge-neutral'}`}>
+                    {cardData.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                  <div className="stat-label mt-2">Card status</div>
+                </div>
+              </div>
+
+              {cardData.isAssigned && (
+                <div className="alert alert-info">
+                  <div className="font-medium">Assigned to {cardData.assignedTo}</div>
+                  <div className="mt-0.5">Since {new Date(cardData.assignedAt).toLocaleString()}</div>
                 </div>
               )}
-            </div>
-          </div>
-        )}
 
-        {/* Instructions */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-gray-900 mb-2">Instructions</h3>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• Swipe any guest card to view its complete information and history</li>
-            <li>• See current assignment status and card activity status</li>
-            <li>• View complete history of all assignments and returns</li>
-            <li>• Toggle card active/inactive status as needed</li>
-            <li>• Inactive cards cannot be assigned but can still be returned</li>
-          </ul>
+              {/* Activate / deactivate */}
+              <div className="card">
+                <div className="card-content flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-slate-900">
+                      {cardData.isActive ? 'Deactivate card' : 'Activate card'}
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      {cardData.isActive
+                        ? 'Inactive cards cannot be assigned to new users.'
+                        : 'Active cards can be assigned to users.'}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleToggleActive}
+                    disabled={loading}
+                    className={cardData.isActive ? 'btn-danger btn-small' : 'btn-primary btn-small'}
+                  >
+                    {loading ? 'Updating…' : (cardData.isActive ? 'Deactivate' : 'Activate')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Card history */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">Activity</h3>
+                {cardHistory.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400 text-sm">
+                    No activity recorded for this card.
+                  </div>
+                ) : (
+                  <div className="table-container">
+                    <div className="table-wrapper">
+                      <table className="data-table">
+                        <thead className="table-header">
+                          <tr>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>When</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cardHistory.map((log, index) => {
+                            const badge = getActionBadge(log.action);
+                            return (
+                              <tr key={index} className="table-row">
+                                <td className="table-cell">
+                                  <span className={`badge ${badge.variant}`}>{badge.label}</span>
+                                </td>
+                                <td className="table-cell">
+                                  <div className="font-medium text-slate-900">
+                                    {log.action === 'status_changed' ? 'System' : (log.userIdentifier || log.user)}
+                                  </div>
+                                  {log.action === 'status_changed' && log.details && (
+                                    <div className="text-slate-500">{log.details}</div>
+                                  )}
+                                  {log.userIdentifier && log.userIdentifier !== log.user && log.action !== 'status_changed' && (
+                                    <div className="text-slate-500">
+                                      {log.userEmail}
+                                      {log.userEmail && log.userPhone && ' · '}
+                                      {log.userPhone}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="table-cell text-slate-500">
+                                  {new Date(log.timestamp).toLocaleString()}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

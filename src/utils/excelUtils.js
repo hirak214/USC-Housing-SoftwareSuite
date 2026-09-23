@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx'
 
 /**
- * Process Excel/CSV file according to Troy CSC requirements
+ * Process Excel/CSV file according to USC Housing requirements
  * @param {File} file - The uploaded file
  * @param {Function} callback - Callback function to handle processed data
  * @returns {Promise} - Promise that resolves when processing is complete
@@ -253,9 +253,9 @@ export function exportExcel(data, filename = 'processed_data.xlsx') {
 
     // Add metadata
     wb.Props = {
-      Title: 'Troy CSC Processed Data',
+      Title: 'USC Package Audit',
       Subject: 'Processed Excel Data',
-      Author: 'Troy CSC Package Auditor',
+      Author: 'USC Housing',
       CreatedDate: new Date()
     }
 

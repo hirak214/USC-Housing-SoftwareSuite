@@ -6,7 +6,7 @@ export default function DataTable({ data }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-12 text-slate-400 text-sm">
         No data to display
       </div>
     )
@@ -35,15 +35,15 @@ export default function DataTable({ data }) {
     <div className="space-y-4">
       {/* Print Header - Only visible when printing */}
       <div className="print-only print-header" style={{ display: 'none' }}>
-        <h1 className="print-title">Troy CSC Package Auditor</h1>
-        <p className="print-subtitle">Processed Package Data - {new Date().toLocaleDateString()}</p>
+        <h1 className="print-title">USC Package Audit</h1>
+        <p className="print-subtitle">Package Inventory - {new Date().toLocaleDateString()}</p>
       </div>
 
       {/* Table Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print mb-6">
-        <div className="flex items-center space-x-3">
-          <label htmlFor="rows-per-page" className="text-sm font-medium text-gray-700">
-            Show:
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 no-print mb-4">
+        <div className="flex items-center gap-2">
+          <label htmlFor="rows-per-page" className="text-sm text-slate-500">
+            Show
           </label>
           <select
             id="rows-per-page"
@@ -58,12 +58,9 @@ export default function DataTable({ data }) {
             <option value={totalRows}>All rows</option>
           </select>
         </div>
-        
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <span>Showing <span className="font-medium text-gray-900">{startIndex + 1}</span> to <span className="font-medium text-gray-900">{endIndex}</span> of <span className="font-medium text-gray-900">{totalRows}</span> entries</span>
+
+        <div className="text-sm text-slate-500">
+          Showing <span className="font-medium text-slate-900 tabular-nums">{startIndex + 1}</span>–<span className="font-medium text-slate-900 tabular-nums">{endIndex}</span> of <span className="font-medium text-slate-900 tabular-nums">{totalRows}</span>
         </div>
       </div>
 
@@ -79,19 +76,12 @@ export default function DataTable({ data }) {
                     className="table-header th"
                     scope="col"
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>{header || `Column ${i + 1}`}</span>
-                      {i === 0 && (
-                        <svg className="w-3 h-3 text-gray-400 no-print" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                        </svg>
-                      )}
-                    </div>
+                    {header || `Column ${i + 1}`}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white">
               {currentRows.map((row, i) => (
                 <tr
                   key={startIndex + i}
@@ -99,7 +89,7 @@ export default function DataTable({ data }) {
                 >
                   {headers.map((_, j) => (
                     <td key={j} className="table-cell">
-                      <span className={j === 0 ? 'font-medium text-gray-900' : 'text-gray-700'}>
+                      <span className={j === 0 ? 'font-medium text-slate-900' : 'text-slate-600'}>
                         {row[j] !== undefined && row[j] !== null ? String(row[j]) : '—'}
                       </span>
                     </td>
@@ -113,12 +103,12 @@ export default function DataTable({ data }) {
 
       {/* Print Footer - Only visible when printing */}
       <div className="print-only print-footer" style={{ display: 'none' }}>
-        <p>Troy CSC Package Auditor - Total Records: {totalRows} - Generated: {new Date().toLocaleString()}</p>
+        <p>USC Package Audit — Total Records: {totalRows} - Generated: {new Date().toLocaleString()}</p>
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50/50 px-6 py-4 mt-6 rounded-b-xl no-print">
+        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 mt-4 no-print">
           {/* Mobile Pagination */}
           <div className="flex flex-1 justify-between sm:hidden">
             <button
@@ -146,8 +136,8 @@ export default function DataTable({ data }) {
           {/* Desktop Pagination */}
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">
-                Page <span className="font-bold text-troy-red">{currentPage}</span> of <span className="font-bold">{totalPages}</span>
+              <span className="text-sm text-slate-500">
+                Page <span className="font-medium text-slate-900 tabular-nums">{currentPage}</span> of <span className="font-medium text-slate-900 tabular-nums">{totalPages}</span>
               </span>
             </div>
             

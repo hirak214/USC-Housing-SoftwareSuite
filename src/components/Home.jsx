@@ -1,56 +1,76 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { ArchiveBoxIcon, CreditCardIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import Footer from './Footer'
+
+const apps = [
+  {
+    to: '/auditor',
+    icon: ArchiveBoxIcon,
+    title: 'Package Auditor',
+    desc: 'Process notifi exports into an audit-ready package list, then save and reprint past runs.',
+  },
+  {
+    to: '/guest-card-inventory',
+    icon: CreditCardIcon,
+    title: 'Guest Card Management',
+    desc: 'Handle guest card requests, assignments, returns, and the full activity log.',
+  },
+]
+
+function AppCard({ to, icon: Icon, title, desc }) {
+  return (
+    <Link
+      to={to}
+      className="group card p-5 flex flex-col gap-4 hover:border-slate-300 hover:shadow-card-hover transition-all duration-150"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-cardinal-50 text-cardinal-600">
+          <Icon className="h-5 w-5" />
+        </div>
+        <ArrowRightIcon className="h-4 w-4 text-slate-300 group-hover:text-cardinal-600 transition-colors duration-150" />
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+        <p className="text-sm text-slate-500 mt-1">{desc}</p>
+      </div>
+    </Link>
+  )
+}
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center py-12 px-4">
-      <h1 className="text-4xl font-extrabold text-troy-red mb-8 tracking-tight text-center">
-        USC Housing Software Suite
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        {/* Troy CSC Package Auditor Widget */}
-        <div className="card flex flex-col items-center p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-          <div className="mb-4">
-            <svg className="w-14 h-14 text-troy-red" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 48 48">
-              <rect x="8" y="12" width="32" height="24" rx="4" fill="#FFCC00" stroke="#990000" strokeWidth="2" />
-              <path d="M8 20h32" stroke="#990000" strokeWidth="2" />
-              <circle cx="16" cy="28" r="2" fill="#990000" />
-              <circle cx="24" cy="28" r="2" fill="#990000" />
-              <circle cx="32" cy="28" r="2" fill="#990000" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">USC Package Auditor</h2>
-          <p className="text-gray-600 text-center mb-6 max-w-xs">
-            Upload, process, and audit package data for USC Housing. Generate Excel and print-ready reports with one click.
-          </p>
-          <Link to="/auditor" className="btn-primary w-full text-center">Open App</Link>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Navbar */}
+      <header className="app-header">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+          <img
+            src="/usc-logo-wordmark.jpg"
+            alt="University of Southern California"
+            className="h-7 w-auto mix-blend-multiply"
+          />
+          <span className="hidden sm:block h-6 w-px bg-slate-200" />
+          <span className="app-title text-lg">USC Housing Software Suite</span>
         </div>
-        
-        {/* Guest Card Inventory System Widget */}
-        <div className="card flex flex-col items-center p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-          <div className="mb-4">
-            <svg className="w-14 h-14 text-troy-red" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 48 48">
-              <rect x="8" y="16" width="32" height="20" rx="4" fill="#FFCC00" stroke="#990000" strokeWidth="2" />
-              <path d="M8 24h32" stroke="#990000" strokeWidth="2" />
-              <circle cx="40" cy="26" r="2" fill="#990000" />
-              <path d="M16 28h8" stroke="#990000" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M16 32h12" stroke="#990000" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <div className="mb-6">
+            <h1 className="text-base font-semibold text-slate-900">Applications</h1>
+            <p className="text-sm text-slate-500 mt-0.5">Choose a tool to get started.</p>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">USC Guest Card Management</h2>
-          <p className="text-gray-600 text-center mb-6 max-w-xs">
-            Manage USC guest card requests, assignments, and returns. Complete inventory tracking with audit logs.
-          </p>
-          <Link 
-            to="/guest-card-inventory" 
-            className="btn-primary w-full text-center"
-          >
-            Open App
-          </Link>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {apps.map((app) => (
+              <AppCard key={app.to} {...app} />
+            ))}
+          </div>
         </div>
-        
-        {/* Add more widgets here for future apps */}
-      </div>
+      </main>
+
+      <Footer />
     </div>
   )
 }

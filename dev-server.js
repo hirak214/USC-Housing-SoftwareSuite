@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import requestsHandler from './api/requests.js';
 import cardsHandler from './api/cards.js';
 import logsHandler from './api/logs.js';
+import auditRunsHandler from './api/audit-runs.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,12 +19,13 @@ const PORT = 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Route handlers
 app.all('/api/requests', requestsHandler);
 app.all('/api/cards', cardsHandler);
 app.all('/api/logs', logsHandler);
+app.all('/api/audit-runs', auditRunsHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Development API server running on http://localhost:${PORT}`);

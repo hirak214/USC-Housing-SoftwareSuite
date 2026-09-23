@@ -39,4 +39,11 @@ export const logsApi = {
   getAll: () => api.get('/api/logs'),
 };
 
+export const auditRunsApi = {
+  getAll: () => api.get('/api/audit-runs'),
+  getById: (id) => api.get(`/api/audit-runs?id=${id}`),
+  create: (runData) => api.post('/api/audit-runs', runData),
+  delete: (id) => api.delete(`/api/audit-runs?id=${id}`),
+};
+
 export default api;

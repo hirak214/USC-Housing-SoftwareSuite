@@ -102,7 +102,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/auditor" element={<AuditorApp />} />
         <Route path="/auditor/history" element={<AppShell sections={AUDITOR_NAV} brandTitle="Package Auditor"><AuditHistory /></AppShell>} />
-        <Route path="/auditor/history/:id" element={<AppShell sections={AUDITOR_NAV} brandTitle="Package Auditor" maxWidth="max-w-6xl"><AuditRunDetail /></AppShell>} />
+        <Route path="/auditor/history/:id" element={<AppShell sections={AUDITOR_NAV} brandTitle="Package Auditor"><AuditRunDetail /></AppShell>} />
         <Route path="/guest-card-inventory/*" element={<GuestCardInventoryApp />} />
         <Route path="/request-card" element={<PublicRequestCard />} />
       </Routes>

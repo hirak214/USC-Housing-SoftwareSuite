@@ -47,7 +47,7 @@ export default function Home() {
           <img
             src="/usc-logo-wordmark.jpg"
             alt="University of Southern California"
-            className="h-7 w-auto mix-blend-multiply"
+            className="h-8 w-auto mix-blend-multiply"
           />
           <span className="hidden sm:block h-6 w-px bg-slate-200" />
           <span className="app-title text-lg">USC Housing Software Suite</span>

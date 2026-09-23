@@ -96,7 +96,7 @@ const Brand = ({ title }) => (
     <img
       src="/usc-logo-wordmark.jpg"
       alt="University of Southern California"
-      className="h-5 w-auto max-w-none mix-blend-multiply"
+      className="h-8 w-auto mix-blend-multiply"
     />
     <p className="text-sm font-semibold text-slate-900">{title}</p>
   </div>

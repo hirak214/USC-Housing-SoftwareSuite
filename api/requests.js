@@ -1,9 +1,9 @@
-import clientPromise from './mongo.js';
+import connectToDatabase from './mongo.js';
 import { ObjectId } from 'mongodb';
 
 export default async (req, res) => {
   try {
-    const client = await clientPromise;
+    const client = await connectToDatabase();
     const db = client.db('guest-card-system');
     const collection = db.collection('requests');
 
